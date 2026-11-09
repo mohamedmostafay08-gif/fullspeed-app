@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Full Speed - Payroll Hub</title>
+<!--WEB_HEAD-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+/* =================== ألوان وثيم =================== */
+:root{
+  --bg-body:#020604; --bg-app:#080d0a; --surface:#111813; --surface-2:#18211b; --line:rgba(255,255,255,.09);
+  --ink:#f1f5f2; --ink-2:#a7b3ab; --ink-3:#808d85;
+  --green:#00A651; --green-hi:#00E676; --gold:#F5A623;
+  --plus:#3ddc84; --plus-bg:rgba(61,220,132,.10); --minus:#ff7b72; --minus-bg:rgba(255,123,114,.10);
+  --warn:#f5b342; --warn-bg:rgba(245,179,66,.10); --info:#64b5f6; --info-bg:rgba(100,181,246,.10);
+  --brand:#00A651; --brand-glow:rgba(0,166,81,.3); --on-brand:#ffffff; --brand-ink:#00E676;
+  --shadow:0 10px 30px rgba(0,0,0,.35); --r:16px;
+  --font:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;
+  color-scheme:dark;
+}
+body.light{
+  --bg-body:#e3e8e4; --bg-app:#f5f7f5; --surface:#ffffff; --surface-2:#eef2ef; --line:#dbe2dd;
+  --ink:#121a15; --ink-2:#47554d; --ink-3:#66736c;
+  --green-hi:#00873f; --plus:#047a3c; --plus-bg:#e6f5ec; --minus:#c62828; --minus-bg:#fdecec;
+  --warn:#9a5800; --warn-bg:#fff3d9; --info:#1565c0; --info-bg:#e6f0fb;
+  --shadow:0 6px 20px rgba(15,23,42,.07);
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden;overscroll-behavior:none;background:var(--bg-body)}
+body{color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.6;display:flex;justify-content:center}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--brand-ink);outline-offset:2px}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+
+.app{width:100%;max-width:440px;height:100%;background:var(--bg-app);position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow)}
+@media (min-width:500px){body{align-items:center}.app{height:94vh;border-radius:32px;border:4px solid var(--line)}}
+
+/* =================== الشريط العلوي والسفلي =================== */
+.topbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid var(--line);background:var(--bg-app)}
+.brand-mini{display:flex;align-items:center;gap:8px;font-weight:900;font-size:15px;direction:ltr}
+.brand-mini img{width:30px;height:30px;border-radius:50%;background:#050a07;object-fit:contain;border:1.5px solid var(--green)}
+.brand-mini span{color:var(--green-hi)}
+.icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:inline-grid;place-items:center;font-size:18px}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 16px 96px}
+.tabbar{position:absolute;inset:auto 0 0 0;display:flex;justify-content:space-around;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+.tab{flex:1;min-height:56px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:700;color:var(--ink-3);border-radius:12px}
+.tab svg{width:22px;height:22px}
+.tab.on{color:var(--green-hi)}
+.tab.on svg{stroke-width:2.6}
+
+.view{display:flex;flex-direction:column;gap:14px}
+.scroll > .view{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h1,h2,h3{margin:0;line-height:1.35}
+.h-title{font-size:20px;font-weight:900}
+.muted{color:var(--ink-2);font-size:14px;margin:0}
+.small{font-size:13px;color:var(--ink-3)}
+
+/* =================== عناصر عامة =================== */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;font-weight:700;color:var(--ink-2)}
+.input{width:100%;min-height:50px;padding:12px 14px;background:var(--surface-2);border:1.5px solid var(--line);border-radius:14px;outline:none;font-size:16px;transition:border-color .2s}
+.input:focus{border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-glow)}
+select.input{appearance:none}
+.btn{min-height:52px;width:100%;border:0;border-radius:14px;background:var(--brand);color:var(--on-brand);font-weight:800;font-size:16px;box-shadow:0 6px 20px var(--brand-glow)}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.green{background:var(--green);color:#fff;box-shadow:0 6px 20px rgba(0,166,81,.3)}
+.ghost{min-height:44px;padding:8px 16px;border-radius:99px;border:1px solid var(--line);background:var(--surface-2);font-weight:700;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.ghost.sm{min-height:36px;padding:4px 12px;font-size:13px}
+.alert{padding:12px 14px;border-radius:12px;font-weight:700;font-size:14px}
+.alert.err{background:var(--minus-bg);color:var(--minus)}
+.alert.note{background:var(--warn-bg);color:var(--warn)}
+.alert.ok{background:var(--plus-bg);color:var(--plus)}
+.empty{text-align:center;padding:28px 16px;border:1.5px dashed var(--line);border-radius:var(--r);color:var(--ink-2)}
+.empty .em{font-size:32px;line-height:1;margin-bottom:8px}
+.empty b{display:block;color:var(--ink);margin-bottom:4px}
+.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:99px;font-size:12px;font-weight:800;white-space:nowrap}
+.cnt{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 6px;border-radius:99px;background:var(--surface-2);font-size:11.5px;font-weight:800}
+
+/* =================== Splash =================== */
+#splash{position:fixed;inset:0;background:#050a07;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .7s cubic-bezier(.77,0,.175,1)}
+#splash.up{transform:translateY(-100%)}
+#splash .logo{width:120px;height:120px;border-radius:50%;padding:4px;background:linear-gradient(135deg,#00E676,#00A651);box-shadow:0 0 40px rgba(0,230,118,.3);animation:pop .6s cubic-bezier(.175,.885,.32,1.275) both}
+#splash .logo img{width:100%;height:100%;border-radius:50%;object-fit:contain;background:#050a07}
+#splash p{margin-top:20px;color:#F5A623;font-weight:800;font-style:italic;direction:ltr;animation:fade .8s .3s both}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* =================== الرئيسية =================== */
+.hello{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hello small{display:block;color:var(--ink-3);font-size:13px}
+.continue{display:flex;align-items:center;gap:12px;width:100%;text-align:right;border:0;border-radius:18px;padding:14px;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#000));color:var(--on);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 30%,transparent)}
+.continue img{width:48px;height:48px;border-radius:14px;background:#fff;object-fit:cover;flex-shrink:0}
+.continue .t{flex:1;min-width:0}
+.continue small{display:block;font-size:12.5px;opacity:.85}
+.continue b{font-size:17px}
+.continue .chev{font-size:22px;font-weight:900}
+.search{position:relative}
+.search svg{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--ink-3)}
+.search .input{padding-inline-start:42px}
+.sec-label{font-size:13px;font-weight:800;color:var(--ink-3);margin:2px 4px -4px}
+.co-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px}
+.co{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;min-width:0}
+.co .ring{width:62px;height:62px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--c),rgba(128,128,128,.25))}
+.co img{width:100%;height:100%;border-radius:50%;background:#fff;object-fit:cover;display:block}
+.co .nm{font-size:12px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co:active{transform:scale(.94)}
+.drop .co{animation:drop .5s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes drop{from{opacity:0;transform:translateY(-40px) scale(.7)}to{opacity:1;transform:none}}
+
+/* =================== الدخول =================== */
+.login-head{text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:8px}
+.login-head img{width:80px;height:80px;border-radius:22px;background:#fff;object-fit:cover;border:3px solid var(--brand);box-shadow:0 6px 24px var(--brand-glow)}
+.check{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;color:var(--ink-2);min-height:44px}
+.check input{width:20px;height:20px;accent-color:var(--brand)}
+.pass-wrap{position:relative}
+.pass-wrap .eye{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:none;color:var(--ink-3);font-size:17px}
+
+/* =================== التحميل =================== */
+.loader{min-height:55vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loader svg{width:100%;max-width:280px;height:80px}
+.neon{font-size:44px;font-weight:900;font-family:Arial,sans-serif;font-style:italic;fill:transparent;stroke:var(--brand-ink);stroke-width:1.5px;stroke-dasharray:400;stroke-dashoffset:400;animation:neon 2.2s ease-in-out infinite alternate}
+@keyframes neon{40%{stroke-dashoffset:0;fill:transparent}100%{stroke-dashoffset:0;fill:var(--brand-ink)}}
+.loader p{color:var(--brand-ink);font-weight:800;animation:blink 1s infinite alternate}
+@keyframes blink{from{opacity:.4}}
+
+/* =================== المرتب =================== */
+.sal-head{display:flex;align-items:center;gap:12px}
+.sal-head img{width:46px;height:46px;border-radius:14px;background:#fff;object-fit:cover;border:2px solid var(--brand);flex-shrink:0}
+.sal-head .who{flex:1;min-width:0}
+.sal-head b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sal-head .meta{font-size:13px;color:var(--ink-3)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface-2);padding:4px;border-radius:14px}
+.seg button{min-height:44px;border:0;border-radius:10px;background:none;font-weight:800;font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.3;gap:2px}
+.seg button.on{background:var(--brand);color:var(--on-brand)}
+.seg button.on .cnt{background:rgba(0,0,0,.18);color:inherit}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;min-height:40px;padding:6px 16px;border-radius:99px;border:1px solid var(--line);background:var(--surface);font-weight:800;font-size:13px;color:var(--ink-2)}
+.chip.on{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+#capture{display:flex;flex-direction:column;gap:12px;background:var(--bg-app);border-radius:20px}
+.cap-strip{display:none;justify-content:space-between;font-size:13px;font-weight:700;color:var(--ink-2);padding:4px 2px}
+.capturing .cap-strip,.capturing .cap-foot{display:flex}
+.cap-foot{display:none;justify-content:center;font-size:12px;font-weight:700;color:var(--ink-3);border-top:1px dashed var(--line);padding-top:10px}
+
+.hero{border-radius:22px;padding:22px 18px;text-align:center;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),color-mix(in srgb,var(--brand) 35%,#0b0f0c));box-shadow:0 12px 30px var(--brand-glow)}
+.hero-top{font-size:14.5px;font-weight:800;opacity:.95}
+.hero-amt{font-size:46px;font-weight:900;line-height:1.15;margin:6px 0 2px}
+.hero-amt small{font-size:16px;opacity:.9}
+.hero-sub{font-size:13px;font-weight:700;opacity:.9}
+.hero-split{display:flex;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--on-brand) 25%,transparent);font-size:13px;font-weight:700}
+.hero-split b{font-size:15px}
+.bar{height:8px;border-radius:9px;background:color-mix(in srgb,var(--on-brand) 22%,transparent);overflow:hidden;margin-top:12px;direction:ltr}
+.bar span{display:block;height:100%;background:var(--on-brand);border-radius:9px}
+
+.grp{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.grp summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 14px;font-weight:800;font-size:14.5px;cursor:pointer;min-height:50px}
+.grp summary::-webkit-details-marker{display:none}
+.grp summary::after{content:'⌄';font-size:16px;color:var(--ink-3);transition:transform .2s}
+.grp[open] summary::after{transform:rotate(180deg)}
+.grp summary .ttl{flex:1;display:flex;align-items:center;gap:8px}
+.grp-plus summary .tot{color:var(--plus)} .grp-minus summary .tot{color:var(--minus)}
+.grp-plus{border-inline-start:4px solid var(--plus)} .grp-minus{border-inline-start:4px solid var(--minus)} .grp-info{border-inline-start:4px solid var(--ink-3)}
+.rows{display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px}
+.r:last-child{border-bottom:0}
+.r span{min-width:0;color:var(--ink-2);font-weight:600}
+.r b{font-weight:900;text-align:left}
+.grp-plus .r b{color:var(--plus)} .grp-minus .r b{color:var(--minus)}
+.actions{display:flex;gap:8px;justify-content:center}
+.actions .ghost{flex:1}
+
+.ocard{background:var(--surface);border:1px solid var(--line);border-inline-start:4px solid var(--k);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ocard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ocard .lbl{font-size:12px;color:var(--ink-3);font-weight:700}
+.ocard .code{font-family:ui-monospace,monospace;font-weight:800;direction:ltr;word-break:break-all}
+.ocard .amt{font-weight:900;font-size:16px;color:var(--k);direction:ltr;text-align:left;white-space:nowrap}
+.ocard .reason{background:color-mix(in srgb,var(--k) 10%,transparent);border-radius:10px;padding:8px 12px;font-weight:800;font-size:13.5px}
+.ocard .meta{font-size:13px;color:var(--ink-2)}
+.ocard .meta strong{color:var(--ink)}
+.sum-line{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;background:color-mix(in srgb,var(--k) 12%,transparent);color:var(--k);font-weight:900}
+
+/* =================== حسابي =================== */
+.layouts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lay{border:2px solid var(--line);border-radius:14px;background:var(--surface);padding:8px;display:flex;flex-direction:column;gap:6px;text-align:center;font-weight:800;font-size:13px}
+.lay[aria-checked="true"]{border-color:var(--green-hi);box-shadow:0 0 0 3px rgba(0,230,118,.15)}
+.lay .pv{height:70px;border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:4px;justify-content:center}
+.lay small{font-weight:600;color:var(--ink-3);font-size:11.5px;line-height:1.4}
+.pv-wallet{background:#0b100d}.pv-wallet i{display:block;height:28px;border-radius:7px;background:linear-gradient(135deg,#ff5a00,#7a2600)}
+.pv-slip{background:#f6f7f5}.pv-slip i{display:block;height:5px;border-radius:3px;background:#fef300}.pv-slip u{display:block;height:24px;border:1.5px dashed #c9d1cb;border-radius:6px}
+.pv-fast{background:#0b100d;align-items:center}.pv-fast i{font-style:normal;color:#fff;font-weight:900;font-size:20px;font-family:Arial}
+.pv i+i,.pv u+u{opacity:.4}
+.pv b{display:block;height:6px;border-radius:3px;background:rgba(128,128,128,.35)}
+.list-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.list-row:last-child{border-bottom:0}
+.list-row img{width:36px;height:36px;border-radius:10px;background:#fff;object-fit:cover}
+.list-row .t{flex:1;min-width:0}
+.seg2{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface-2);padding:4px;border-radius:14px}
+.seg2 button{min-height:44px;border:0;border-radius:10px;background:none;font-weight:800;color:var(--ink-2)}
+.seg2 button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.15)}
+details.guide summary{font-weight:800;cursor:pointer;min-height:44px;display:flex;align-items:center}
+details.guide p{margin:6px 0;font-size:14px;color:var(--ink-2)}
+.about{text-align:center;direction:ltr;display:flex;flex-direction:column;gap:4px;padding:16px 4px 0;border-top:1px solid var(--line)}
+.about h3{color:var(--green-hi);font-size:14px;letter-spacing:.04em}
+.about p{margin:0;font-size:12.5px;color:var(--ink-2)}
+.about .slogan{color:var(--gold);font-weight:800}
+.dev{margin-top:10px;font-size:12px;color:var(--ink-3)}
+.dev b{color:var(--ink)}
+.phone-pill{display:inline-flex;margin:6px auto 0;padding:6px 18px;border-radius:99px;background:var(--plus-bg);color:var(--green-hi);font-weight:800;text-decoration:none;font-family:ui-monospace,monospace}
+
+.offline{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-weight:700;font-size:13.5px}
+.offline button{margin-inline-start:auto}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+.switch .t{flex:1;min-width:0}
+.switch small{display:block;color:var(--ink-3);font-size:12.5px;font-weight:600}
+.tog{position:relative;width:52px;height:30px;border-radius:99px;border:0;background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line);flex-shrink:0}
+.tog::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;background:var(--ink-3);transition:inset-inline-start .2s,background .2s}
+.tog[aria-checked="true"]{background:var(--green)}
+.tog[aria-checked="true"]::after{inset-inline-start:25px;background:#fff}
+.install-bar{display:flex;align-items:center;gap:12px;width:100%;text-align:right;border:1.5px dashed var(--green-hi);background:var(--surface);color:var(--ink);border-radius:16px;padding:12px 14px;font-weight:800}
+.install-bar img{width:40px;height:40px;border-radius:10px}
+.install-bar small{display:block;font-weight:600;color:var(--ink-3);font-size:12.5px}
+.toast{position:fixed;bottom:calc(84px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 18px;border-radius:99px;font-size:13.5px;font-weight:700;z-index:500;box-shadow:0 8px 25px rgba(0,0,0,.35);max-width:90vw;text-align:center}
+
+/* ============================================================
+   الاتجاه ب: قسيمة الصرف (slip)
+   ============================================================ */
+body[data-layout="slip"] .co-grid{grid-template-columns:1fr;gap:0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:0 12px}
+body[data-layout="slip"] .co{flex-direction:row;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);justify-content:flex-start}
+body[data-layout="slip"] .co:last-child{border-bottom:0}
+body[data-layout="slip"] .co .ring{width:40px;height:40px;border-radius:11px;padding:0;background:none}
+body[data-layout="slip"] .co img{border-radius:11px;border:1px solid var(--line)}
+body[data-layout="slip"] .co .nm{font-size:15px;flex:1;text-align:right}
+body[data-layout="slip"] .co::after{content:'‹';color:var(--ink-3);font-weight:900}
+body[data-layout="slip"] .hero{background:var(--surface);color:var(--ink);border:1.5px dashed var(--line);box-shadow:none;position:relative;overflow:hidden;padding-top:28px}
+body[data-layout="slip"] .hero::before{content:'';position:absolute;inset:0 0 auto 0;height:8px;background:var(--brand)}
+body[data-layout="slip"] .hero-split{border-color:var(--line)}
+body[data-layout="slip"] .bar{background:var(--surface-2)} body[data-layout="slip"] .bar span{background:var(--brand-ink)}
+body[data-layout="slip"] .grp{border-radius:10px;border-inline-start-width:1px}
+body[data-layout="slip"] .grp summary{background:var(--surface-2)}
+body[data-layout="slip"] .r:nth-child(even){background:var(--surface-2)}
+body[data-layout="slip"] .cap-strip{display:flex}
+
+/* ============================================================
+   الاتجاه ج: بسيط وسريع (fast)
+   ============================================================ */
+body[data-layout="fast"] .hero{background:none;box-shadow:none;color:var(--ink);padding:10px 4px;text-align:right}
+body[data-layout="fast"] .hero-amt{font-size:60px}
+body[data-layout="fast"] .hero-split{border:0;padding:0;margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+body[data-layout="fast"] .hero-split span{background:var(--plus-bg);color:var(--plus);border-radius:14px;padding:12px;display:flex;flex-direction:column}
+body[data-layout="fast"] .hero-split span+span{background:var(--minus-bg);color:var(--minus)}
+body[data-layout="fast"] .hero-split b{font-size:22px}
+body[data-layout="fast"] .bar{display:none}
+body[data-layout="fast"] .grp summary{min-height:58px;font-size:16px}
+body[data-layout="fast"] .co-grid{grid-template-columns:repeat(3,1fr)}
+body[data-layout="fast"] .co .ring{width:72px;height:72px}
+body[data-layout="fast"] .chip{min-height:46px;font-size:14px}
+body[data-layout="fast"] .actions .ghost{min-height:52px}
+
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body data-layout="wallet">
+
+<div id="splash" hidden>
+  <div class="logo"><img src="https://drive.google.com/thumbnail?id=1A0ZcNlSMy_WJsM1sHrstHjBBW55Zsnw1&sz=w600" alt="Full Speed"></div>
+  <p>Not just faster, Smarter.</p>
+</div>
+
+<div class="app" id="app-wrapper">
+  <header class="topbar">
+    <div class="brand-mini"><img src="https://drive.google.com/thumbnail?id=1A0ZcNlSMy_WJsM1sHrstHjBBW55Zsnw1&sz=w200" alt="">Full Speed <span>Payroll</span></div>
+    <button class="icon-btn" id="theme-btn" aria-label="تغيير الثيم"><span id="theme-icon">☀️</span></button>
+  </header>
+
+  <main class="scroll" id="scroll">
+
+    <!-- ============ الرئيسية ============ -->
+    <section id="view-home" class="view">
+      <div class="hello">
+        <div><small id="greet">أهلاً بيك</small><h1 class="h-title">اختار شركتك وشوف مرتبك</h1></div>
+      </div>
+      <button class="continue" id="home-continue" hidden></button>
+      <button class="install-bar" id="install-bar" hidden>
+        <img src="icons/icon-192.png" alt="">
+        <span style="flex:1"><span>ثبّت التطبيق على موبايلك</span><small>يفتح أسرع ومن غير نت وبالبصمة</small></span>
+        <span aria-hidden="true">⬇</span>
+      </button>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.6" y2="16.6"/></svg>
+        <input class="input" id="co-search" type="search" placeholder="ابحث باسم الشركة" autocomplete="off" aria-label="ابحث باسم الشركة">
+      </div>
+      <div class="sec-label">كل الشركات</div>
+      <div class="co-grid" id="co-grid"></div>
+      <div class="about">
+        <h3>ABOUT FULL SPEED</h3>
+        <p>A high-performance logistics and last-mile delivery company operating across Egypt and the UAE.</p>
+        <p>Trusted by Amazon, Noon, Talabat, InstaShop, Bosta, Jumia, Breadfast &amp; more.</p>
+        <p class="slogan">EVERY SHIPMENT. EVERY TIME.</p>
+        <div class="dev">POWERED BY <b>MOHAMED MOSTAFA</b></div>
+        <a class="phone-pill" href="tel:01120339097">01120339097</a>
+      </div>
+    </section>
+
+    <!-- ============ الدخول ============ -->
+    <section id="view-login" class="view" hidden>
+      <button class="ghost sm" data-go="home" style="align-self:flex-start">→ كل الشركات</button>
+      <div class="login-head">
+        <img id="login-logo" alt="">
+        <h2 class="h-title" id="login-name">-</h2>
+        <p class="muted">ادخل بكود المندوب أو رقم موبايلك</p>
+      </div>
+      <form id="login-form" class="view" novalidate style="gap:12px">
+        <div id="login-err" class="alert err" role="alert" hidden></div>
+        <div class="field">
+          <label for="rider-id">كود المندوب أو رقم الموبايل</label>
+          <input class="input num" id="rider-id" type="tel" inputmode="numeric" autocomplete="username" placeholder="مثال: 48213" style="text-align:right">
+        </div>
+        <div class="field">
+          <label for="rider-pass">الرقم السري</label>
+          <div class="pass-wrap">
+            <input class="input" id="rider-pass" type="password" autocomplete="current-password" placeholder="••••••">
+            <button type="button" class="eye" id="eye-btn" aria-label="إظهار الرقم السري">👁</button>
+          </div>
+        </div>
+        <div id="setup-box" class="alert note" hidden>ده أول دخول ليك. الرقم اللي كتبته هيبقى الرقم السري بتاعك على طول، اكتبه تاني تحت للتأكيد واحفظه كويس.</div>
+        <div class="field" id="pass2-group" hidden>
+          <label for="rider-pass2">اكتب الرقم السري تاني</label>
+          <input class="input" id="rider-pass2" type="password" autocomplete="new-password" placeholder="••••••">
+        </div>
+        <label class="check"><input type="checkbox" id="remember" checked> افتكرني على الموبايل ده (30 يوم)</label>
+        <button class="btn" id="login-btn" type="submit">دخول</button>
+        <p class="small" style="text-align:center;margin:0">نسيت الرقم السري؟ كلّم المشرف يمسحه وتختار واحد جديد.</p>
+      </form>
+    </section>
+
+    <!-- ============ التحميل ============ -->
+    <section id="view-loading" class="view" hidden>
+      <div class="loader">
+        <svg viewBox="0 0 350 100"><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" class="neon">FULL SPEED</text></svg>
+        <p>بنجيب بياناتك…</p>
+      </div>
+    </section>
+
+    <!-- ============ المرتب ============ -->
+    <section id="view-salary" class="view" hidden>
+      <div id="salary-empty" class="empty">
+        <div class="em">💼</div><b>لسه مدخلتش على حسابك</b>
+        اختار شركتك من الرئيسية وادخل بالكود والرقم السري.
+        <div style="margin-top:14px"><button class="ghost" data-go="home">اختار شركتك</button></div>
+      </div>
+      <div id="salary-content" class="view" hidden></div>
+    </section>
+
+    <!-- ============ حسابي ============ -->
+    <section id="view-account" class="view" hidden>
+      <h2 class="h-title">حسابي والإعدادات</h2>
+
+      <div class="card view" style="gap:10px">
+        <h3 style="font-size:15px">شكل التطبيق</h3>
+        <div class="layouts" role="radiogroup" aria-label="شكل التطبيق">
+          <button class="lay" role="radio" data-layout="wallet"><span class="pv pv-wallet"><i></i><b></b><b></b></span>المحفظة<small>داكن وكارت زي البنك</small></button>
+          <button class="lay" role="radio" data-layout="slip"><span class="pv pv-slip"><i></i><u></u><b></b></span>قسيمة الصرف<small>فاتح ورسمي</small></button>
+          <button class="lay" role="radio" data-layout="fast"><span class="pv pv-fast"><i>3,240</i><b style="width:60%"></b></span>بسيط وسريع<small>الرقم بس وأزرار كبيرة</small></button>
+        </div>
+        <div class="seg2" role="radiogroup" aria-label="الثيم">
+          <button data-theme="dark">🌙 داكن</button><button data-theme="light">☀️ فاتح</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:15px;margin-bottom:4px">الحسابات المحفوظة على الموبايل ده</h3>
+        <div id="sessions"></div>
+      </div>
+
+      <div class="card" id="bio-card">
+        <div class="switch">
+          <div class="t"><b>🔒 الدخول بالبصمة أو بقفل الموبايل</b><small id="bio-note">بدل الرقم السري كل مرة، والحسابات المحفوظة متفتحش لحد غيرك.</small></div>
+          <button class="tog" id="bio-tog" role="switch" aria-checked="false" aria-label="الدخول بالبصمة"></button>
+        </div>
+      </div>
+
+      <div class="card">
+        <button class="btn green" id="install-btn" hidden style="margin-bottom:8px">📲 ثبّت التطبيق دلوقتي</button>
+        <a class="btn green" id="app-link" hidden target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;text-decoration:none;margin-bottom:8px">📲 افتح التطبيق الجديد</a>
+        <details class="guide">
+          <summary>📱 ثبّت التطبيق على الشاشة الرئيسية</summary>
+          <p><b>أندرويد:</b> اضغط على (⋮) فوق في المتصفح، واختار <b>Add to Home screen</b>.</p>
+          <p><b>آيفون:</b> اضغط على زرار المشاركة (⇪) تحت، وانزل واختار <b>Add to Home Screen</b>.</p>
+        </details>
+      </div>
+
+    </section>
+  </main>
+
+  <nav class="tabbar" aria-label="التنقل">
+    <button class="tab on" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2h-4v-7H9v7H5a2 2 0 0 1-2-2z"/></svg>الرئيسية</button>
+    <button class="tab" data-tab="salary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="13" rx="3"/><path d="M2 10h20M16 15h2"/></svg>مرتبي</button>
+    <button class="tab" data-tab="account"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>حسابي</button>
+  </nav>
+</div>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script>
+/* =========================================================================
+   البيانات الثابتة
+   ========================================================================= */
+var DRIVE = 'https://drive.google.com/thumbnail?sz=w400&id=';
+var COMPANIES = [
+  { id:'talabat', name:'Talabat', sheetName:'Talabat', logo:'14PU-JRloV8TUBceheEjbv6BJbMlnCAn1', brandColor:'#ff5a00' },
+  { id:'amazon', name:'Amazon Now', sheetName:'Amazon now', logo:'1tH0hqDpJnbmBiihabxupQwf-r0Ax-pZC', brandColor:'#ff9900' },
+  { id:'noon_minutes', name:'Noon Minutes', sheetName:'Noon Minuts', logo:'1Z2xvg3BzGtzO6i890zsVwl2FXYMnSlRK', brandColor:'#fef300' },
+  { id:'noon_core', name:'Noon Core', sheetName:'Noon Core', logo:'1x7aMADP9RRjbFo57i5UPkW1L9JP4Svg_', brandColor:'#fef300' },
+  { id:'bosta', name:'Bosta', sheetName:'Bosta', logo:'1Pb__Aa2CFznCCWqj91nE0weYiQ3oM7Xd', brandColor:'#e30613' },
+  { id:'mylerz', name:'Mylerz', sheetName:'Mylerz', logo:'1NBNSnAgZwBVvc7XFfToojFWLKFEGqa1v', brandColor:'#ff6c00' },
+  { id:'breadfast', name:'Breadfast', sheetName:'Breadfast', logo:'1eIe3FXnEA0q9caVyAiThr-MNw9x3wbcY', brandColor:'#8f1c84' },
+  { id:'instashop', name:'InstaShop', sheetName:'InstaShop', logo:'18OqiMGiPb5jGqp-vNIB1Vzp8S8kXj9GK', brandColor:'#e02443' },
+  { id:'jumia', name:'Jumia', sheetName:'Jumia', logo:'1PzcmwqUpMwp1OPvNxrH22RM6fJ_807Hs', brandColor:'#f68b1e' },
+  { id:'flextock', name:'Flextock', sheetName:'Flextock', logo:'1gmPICsoeCG6j4sz8pBHQV89BC29Jsiwd', brandColor:'#83c393' },
+  { id:'halan', name:'Halan', sheetName:'Halan', logo:'1ekFS6LXkv9lSNmR_77EMbKzyTENo2QrE', brandColor:'#12c380' },
+  { id:'khazenly', name:'Khazenly', sheetName:'Khazenly', logo:'1aCgpqMd80m0P_6msyC1UfeRaIe2W5L-8', brandColor:'#1277ff' },
+  { id:'lychee', name:'Lychee', sheetName:'Lychee', logo:'1-0Tv52YxNFDGeTQp1y8mWvEl8zhIynDZ', brandColor:'#4b5563' },
+  { id:'talabya', name:'Talabya', sheetName:'Talabya', logo:'1GqBNMHCnkNQDtud0ISVN8Leh_ikSHg2S', brandColor:'#e30613' },
+  { id:'pdc_express', name:'PDC Express', sheetName:'PDC Express', logo:'1g4oTxJa5fghRVXnqUpcv4cTn9PPIrgVn', brandColor:'#21a5b6' },
+  { id:'hassan_allam', name:'Hassan Allam', sheetName:'Hassan Allam', logo:'16MLsR8qiTlzJV08GDefSoILH7Cf-mzLu', brandColor:'#003366' },
+  { id:'carrefour', name:'Carrefour', sheetName:'Carrefour', logo:'1G5ckXBJUbAk1N9g_jkc8Fdn44P4NPyiF', brandColor:'#004b87' },
+  { id:'zadna', name:'Zadna', sheetName:'Zadna', logo:'14vQY0J9G2x9QVLr1OcVMSEuxfRa3ni5X', brandColor:'#d4af37' },
+  { id:'maxab', name:'MaxAB', sheetName:'MaxAB', logo:'1z4zEmGiCoXLvt7Iil-w-yJkD02Y7i91N', brandColor:'#005eb8' },
+  { id:'tagaddod', name:'Tagaddod', sheetName:'Tagaddod', logo:'1g85C3zhcphrLAu4pI8-y0M76cp7M_V83', brandColor:'#e30613' },
+  { id:'rabbit', name:'Rabbit', sheetName:'Rabbit', logo:'1RULlzyn2g84Z5z5J8O6-tCua-dAPO2eE', brandColor:'#c4e514' },
+  { id:'jt_express', name:'J&T Express', sheetName:'J&T Express', logo:'1HvOtguMiXAuFLx6gQpiHt3M2RsYaInNV', brandColor:'#e3000f' },
+  { id:'jd_express', name:'JD Express', sheetName:'JD Express', logo:'1L9-iKbYZa6XFe9OAZu1ro4A7d2KcRbRF', brandColor:'#ce1126' },
+  { id:'nodust', name:'Nodust', sheetName:'Nodust', logo:'1HS4Sl-gYhbk_2Sz-NZK4MBmzlbgeoTfe', brandColor:'#e01a22' },
+  { id:'yalla_fel_sekka', name:'Yalla Fel Sekka', sheetName:'Yalla Fel Sekka', logo:'1cqBE2AvCwp_VFwtyN_aELyPeYSlolrTv', brandColor:'#00aae6' },
+  { id:'rumis', name:"Rumi's", sheetName:"Rumi's", logo:'1nEj5ogMKTAIWNrv_ptTDTfJdpqamhCKt', brandColor:'#1d81b9' }
+];
+COMPANIES.forEach(function(c){ c.logo = DRIVE + c.logo; });
+var LAYOUTS = { wallet:'dark', slip:'light', fast:'dark' };
+
+var S = { company:null, riderId:'', data:null, week:0, section:'salary', ew:{}, setup:false, view:'home' };
+
+/* =========================================================================
+   أدوات
+   ========================================================================= */
+function $(id){ return document.getElementById(id); }
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+var store = {
+  get:function(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } },
+  set:function(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} },
+  del:function(k){ try { localStorage.removeItem(k); } catch(e){} },
+  keys:function(){ try { return Object.keys(localStorage); } catch(e){ return []; } }
+};
+function findCo(id){ for (var i=0;i<COMPANIES.length;i++) if (COMPANIES[i].id === id) return COMPANIES[i]; return null; }
+function toNum(v){ if (typeof v === 'number') return v; var s = String(v == null ? '' : v).replace(/,/g,'').trim(); if (!/^-?\d+(\.\d+)?$/.test(s)) return null; return parseFloat(s); }
+function fmt(v){ var n = toNum(v); if (n === null) return String(v == null ? '' : v); return n.toLocaleString('en-US', { maximumFractionDigits:2 }); }
+function lum(hex){ var n = parseInt(hex.replace('#',''),16); return (0.299*(n>>16&255) + 0.587*(n>>8&255) + 0.114*(n&255)) / 255; }
+function textOn(hex){ return lum(hex) > 0.6 ? '#111111' : '#ffffff'; }
+function rgba(hex,a){ var n = parseInt(hex.replace('#',''),16); return 'rgba('+(n>>16&255)+','+(n>>8&255)+','+(n&255)+','+a+')'; }
+function reducedMotion(){ return window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches; }
+var toastT;
+function toast(msg, ms){ var t = $('toast'); t.textContent = msg; t.hidden = false; clearTimeout(toastT); if (ms !== 0) toastT = setTimeout(function(){ t.hidden = true; }, ms || 2600); }
+function hideToast(){ $('toast').hidden = true; }
+
+// جوه Apps Script بنستخدم google.script.run ، وفي التطبيق المستقل بنكلم doPost
+var API_URL = window.FS_API_URL || '';
+var APP_URL = 'https://mohamedmostafay08-gif.github.io/fullspeed-app/';   // رابط التطبيق على GitHub Pages
+var IS_GAS = typeof google !== 'undefined' && !!(google.script && google.script.run);
+var IS_APP = !IS_GAS && !!API_URL;
+
+function call(fn, args, ok, fail){
+  fail = fail || function(){ toast('مشكلة في الاتصال، جرب تاني'); };
+  if (IS_GAS) {
+    var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
+    r[fn].apply(r, args); return;
+  }
+  if (!API_URL) { fail({ message:'رابط السيرفر مش متظبط' }); return; }
+  var ctl = window.AbortController ? new AbortController() : null;
+  var timer = setTimeout(function(){ if (ctl) ctl.abort(); }, 25000);
+  // من غير Content-Type عشان المتصفح ميعملش preflight (Apps Script مبيردش عليه)
+  fetch(API_URL, { method:'POST', body:JSON.stringify({ action:fn, args:args }), redirect:'follow', signal:ctl ? ctl.signal : undefined })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(res){ clearTimeout(timer); ok(res); })
+    .catch(function(err){ clearTimeout(timer); fail({ message:String(err && err.message || err), offline:true }); });
+}
+
+/* ---------- بيانات محفوظة للعرض من غير نت ---------- */
+function saveOffline(c, id, raw){ store.set('fs_data_' + c.id, { id:id, at:Date.now(), data:raw }); }
+function loadOffline(c){ return store.get('fs_data_' + c.id); }
+function forget(c){
+  var s = store.get('fs_sess_' + c.id);
+  if (s) call('logout', [s.id, s.token], function(){}, function(){});
+  store.del('fs_sess_' + c.id); store.del('fs_data_' + c.id);
+  if (S.company && S.company.id === c.id) { S.data = null; S.riderId = ''; }
+}
+function ago(t){
+  var m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return 'دلوقتي'; if (m < 60) return 'من ' + m + ' دقيقة';
+  var h = Math.round(m / 60); if (h < 24) return 'من ' + h + ' ساعة';
+  return 'يوم ' + new Date(t).toLocaleDateString('ar-EG', { day:'numeric', month:'long' });
+}
+
+/* ---------- البصمة (WebAuthn كقفل على الموبايل نفسه) ---------- */
+var BIO = {
+  supported:false,
+  enabled:function(){ return !!store.get('fs_bio'); },
+  b64:function(buf){ return btoa(String.fromCharCode.apply(null, new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); },
+  unb64:function(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '='; var b = atob(s), a = new Uint8Array(b.length); for (var i=0;i<b.length;i++) a[i] = b.charCodeAt(i); return a; },
+  rnd:function(n){ var a = new Uint8Array(n); crypto.getRandomValues(a); return a; },
+  check:function(){
+    var self = this;
+    if (window.top !== window || !window.PublicKeyCredential || !window.isSecureContext) return Promise.resolve(false);
+    return PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(function(ok){ self.supported = !!ok; return self.supported; }).catch(function(){ return false; });
+  },
+  enroll:function(){
+    var self = this;
+    return navigator.credentials.create({ publicKey:{
+      challenge:self.rnd(32), rp:{ name:'Full Speed Payroll' },
+      user:{ id:self.rnd(16), name:'rider', displayName:'مندوب Full Speed' },
+      pubKeyCredParams:[{ type:'public-key', alg:-7 }, { type:'public-key', alg:-257 }],
+      authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required', residentKey:'discouraged' },
+      timeout:60000 } }).then(function(cred){ store.set('fs_bio', self.b64(cred.rawId)); return true; });
+  },
+  verify:function(){
+    var id = store.get('fs_bio'); if (!id) return Promise.resolve(true);
+    return navigator.credentials.get({ publicKey:{
+      challenge:this.rnd(32), allowCredentials:[{ type:'public-key', id:this.unb64(id) }],
+      userVerification:'required', timeout:60000 } }).then(function(){ return true; }).catch(function(){ return false; });
+  }
+};
+
+function setBrand(c){
+  var col = c ? c.brandColor : '#00A651';
+  var light = document.body.classList.contains('light');
+  var root = document.documentElement.style;
+  root.setProperty('--brand', col);
+  root.setProperty('--brand-glow', rgba(col, .28));
+  root.setProperty('--on-brand', textOn(col));
+  // لون البراند كنص على الخلفية: الألوان الفاتحة (الأصفر) مش بتتقري على الفاتح والغامقة مش بتتقري على الداكن
+  var L = lum(col);
+  root.setProperty('--brand-ink', light ? (L > 0.55 ? '#5c5400' : col) : (L < 0.25 ? '#8ab4ff' : col));
+}
+
+/* =========================================================================
+   التنقل
+   ========================================================================= */
+var VIEWS = ['home','login','loading','salary','account'];
+var TAB_OF = { home:'home', login:'salary', loading:'salary', salary:'salary', account:'account' };
+function show(v){
+  S.view = v;
+  VIEWS.forEach(function(x){ $('view-' + x).hidden = (x !== v); });
+  document.querySelectorAll('.tab').forEach(function(t){
+    var on = t.dataset.tab === TAB_OF[v];
+    t.classList.toggle('on', on);
+    if (on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
+  });
+  $('scroll').scrollTop = 0;
+}
+function goTab(t){
+  if (t === 'home') { renderHome(); show('home'); }
+  else if (t === 'salary') {
+    if (S.data) { renderSalary(); show('salary'); }
+    else if (S.company) { show('login'); }
+    else { renderSalary(); show('salary'); }
+  }
+  else if (t === 'account') { renderAccount(); show('account'); }
+}
+document.addEventListener('click', function(e){
+  var tab = e.target.closest('[data-tab]'); if (tab) { goTab(tab.dataset.tab); return; }
+  var go = e.target.closest('[data-go]'); if (go) { goTab(go.dataset.go); }
+});
+
+/* =========================================================================
+   الثيم وشكل التطبيق
+   ========================================================================= */
+function applyTheme(t){
+  document.body.classList.toggle('light', t === 'light');
+  $('theme-icon').textContent = t === 'light' ? '🌙' : '☀️';
+  store.set('fs_theme', t);
+  setBrand(S.company);
+  document.querySelectorAll('.seg2 [data-theme]').forEach(function(b){ b.classList.toggle('on', b.dataset.theme === t); });
+}
+function applyLayout(l, fromUser){
+  if (!LAYOUTS[l]) l = 'wallet';
+  document.body.dataset.layout = l;
+  store.set('fs_layout', l);
+  if (fromUser) applyTheme(LAYOUTS[l]);
+  document.querySelectorAll('.lay').forEach(function(b){ b.setAttribute('aria-checked', b.dataset.layout === l ? 'true' : 'false'); });
+  if (S.data) renderSalary();
+}
+$('theme-btn').onclick = function(){ applyTheme(document.body.classList.contains('light') ? 'dark' : 'light'); };
+document.querySelectorAll('.seg2 [data-theme]').forEach(function(b){ b.onclick = function(){ applyTheme(b.dataset.theme); }; });
+document.querySelectorAll('.lay').forEach(function(b){ b.onclick = function(){ applyLayout(b.dataset.layout, true); toast('اتغيّر الشكل لـ ' + b.childNodes[1].textContent.trim()); }; });
+
+/* =========================================================================
+   الرئيسية
+   ========================================================================= */
+function renderHome(animate){
+  var h = new Date().getHours();
+  $('greet').textContent = h < 12 ? 'صباح الخير ☀️' : 'مساء الخير 🌙';
+  var last = findCo(store.get('fs_last'));
+  var cont = $('home-continue');
+  if (last) {
+    var saved = !!store.get('fs_sess_' + last.id);
+    cont.hidden = false;
+    cont.style.setProperty('--c', last.brandColor);
+    cont.style.setProperty('--on', textOn(last.brandColor));
+    cont.innerHTML = '<img src="' + esc(last.logo) + '" alt=""><span class="t"><small>' + (saved ? 'ادخل على طول' : 'آخر شركة دخلت عليها') + '</small><b>' + esc(last.name) + '</b></span><span class="chev">‹</span>';
+    cont.onclick = function(){ selectCompany(last); };
+  } else cont.hidden = true;
+  renderGrid($('co-search').value, animate);
+  setBrand(null);
+}
+function renderGrid(q, animate){
+  q = (q || '').trim().toLowerCase();
+  var list = COMPANIES.filter(function(c){ return !q || c.name.toLowerCase().indexOf(q) !== -1 || c.sheetName.toLowerCase().indexOf(q) !== -1; });
+  var grid = $('co-grid');
+  grid.classList.toggle('drop', !!animate);
+  grid.innerHTML = list.length ? list.map(function(c, i){
+    return '<button class="co" data-co="' + c.id + '" style="--c:' + c.brandColor + ';animation-delay:' + (i*0.025).toFixed(3) + 's"><span class="ring"><img src="' + esc(c.logo) + '" alt="" loading="lazy"></span><span class="nm">' + esc(c.name) + '</span></button>';
+  }).join('') : '<div class="empty" style="grid-column:1/-1">مفيش شركة بالاسم ده.</div>';
+}
+$('co-search').addEventListener('input', function(){ renderGrid(this.value); });
+$('co-grid').addEventListener('click', function(e){ var b = e.target.closest('[data-co]'); if (b) selectCompany(findCo(b.dataset.co)); });
+
+/* =========================================================================
+   الدخول
+   ========================================================================= */
+function selectCompany(c){
+  if (!c) return;
+  S.company = c; S.data = null; S.riderId = '';
+  setBrand(c);
+  store.set('fs_last', c.id);
+  var sess = store.get('fs_sess_' + c.id);
+  prepLogin(c, sess ? sess.id : '');
+  if (sess && sess.id && sess.token) {
+    show('loading');
+    var go = function(){
+      var cached = loadOffline(c);
+      if (navigator.onLine === false && cached) { S.riderId = cached.id; onData(cached.data, cached.at); return; }
+      call('loginWithToken', [c.sheetName, sess.id, sess.token], function(res){
+        if (res && res.success) { S.riderId = res.riderId || sess.id; saveOffline(c, S.riderId, res.data); onData(res.data); }
+        else {
+          if (res && res.expired) { store.del('fs_sess_' + c.id); store.del('fs_data_' + c.id); }
+          show('login'); loginError(res && res.message ? res.message : 'ادخل بالرقم السري تاني.');
+        }
+      }, function(){
+        if (cached) { S.riderId = cached.id; onData(cached.data, cached.at); return; }
+        show('login'); loginError('مفيش اتصال بالنت. اتأكد من النت وجرب تاني.');
+      });
+    };
+    if (BIO.enabled() && BIO.supported) {
+      BIO.verify().then(function(ok){
+        if (ok) go();
+        else { show('login'); loginError('البصمة متأكدتش. ادخل بالرقم السري.'); }
+      });
+    } else go();
+    return;
+  }
+  show('login');
+}
+function prepLogin(c, id){
+  $('login-logo').src = c.logo;
+  $('login-name').textContent = c.name;
+  $('rider-id').value = id || '';
+  $('rider-pass').value = ''; $('rider-pass2').value = '';
+  setSetup(false); loginError('');
+}
+function setSetup(on){
+  S.setup = on;
+  $('setup-box').hidden = !on; $('pass2-group').hidden = !on;
+  $('login-btn').textContent = on ? 'أكّد الرقم السري وادخل' : 'دخول';
+  $('rider-pass').setAttribute('autocomplete', on ? 'new-password' : 'current-password');
+}
+function loginError(msg){ $('login-err').textContent = msg; $('login-err').hidden = !msg; }
+$('rider-id').addEventListener('input', function(){ if (S.setup) setSetup(false); });
+$('eye-btn').onclick = function(){ var p = $('rider-pass'); p.type = p.type === 'password' ? 'text' : 'password'; };
+
+$('login-form').addEventListener('submit', function(e){
+  e.preventDefault();
+  var c = S.company; if (!c) return goTab('home');
+  var id = $('rider-id').value.trim(), pass = $('rider-pass').value.trim(), pass2 = $('rider-pass2').value.trim();
+  if (!id || !pass) return loginError('اكتب الكود والرقم السري.');
+  if (S.setup) {
+    if (pass.length < 4) return loginError('الرقم السري لازم يكون 4 حروف أو أرقام على الأقل.');
+    if (pass !== pass2) return loginError('الرقمين مش زي بعض. اكتبهم تاني.');
+  }
+  loginError('');
+  var btn = $('login-btn'); btn.disabled = true;
+  show('loading');
+  call('checkSalary', [c.sheetName, id, pass, S.setup], function(res){
+    btn.disabled = false;
+    if (res && res.success) {
+      S.riderId = res.riderId || id;
+      if ($('remember').checked && res.token) { store.set('fs_sess_' + c.id, { id:S.riderId, token:res.token }); saveOffline(c, S.riderId, res.data); }
+      else { store.del('fs_sess_' + c.id); store.del('fs_data_' + c.id); }
+      onData(res.data);
+    } else if (res && res.needsSetup) {
+      show('login'); setSetup(true); $('rider-pass2').focus();
+    } else {
+      show('login'); setSetup(S.setup); loginError(res && res.message ? res.message : 'مقدرناش ندخلك. جرب تاني.');
+    }
+  }, function(){ btn.disabled = false; show('login'); loginError('مشكلة في الاتصال. اتأكد من النت وجرب تاني.'); });
+});
+
+/* =========================================================================
+   المرتب
+   ========================================================================= */
+function normalize(d){
+  if (d && d.type === 'talabat') {
+    var b = d.rider_base_info || {};
+    return { name:b.name, vehicle:b.vehicle, city:b.city, sp:b.sp, weeks:d.salaries || [],
+             extras:{ canceled:d.canceled || {}, compensations:d.compensations || {}, deductions:d.deductions || {} } };
+  }
+  return { name:d.rider_name, vehicle:d.vehicle_type, weeks:d.weeks || [], extras:null };
+}
+function onData(raw, offlineAt){
+  S.data = normalize(raw || {});
+  S.offlineAt = offlineAt || 0;
+  S.section = 'salary'; S.ew = {};
+  S.week = Math.max(0, S.data.weeks.length - 1);
+  renderSalary(); show('salary'); if (!offlineAt) celebrate();
+}
+function celebrate(){
+  try {
+    var w = S.data.weeks[S.data.weeks.length - 1];
+    if (!w || reducedMotion() || typeof confetti !== 'function') return;
+    if (toNum(w.final_total) > 0) confetti({ particleCount:120, spread:70, origin:{ y:0.35 }, colors:[S.company.brandColor, '#00E676', '#ffffff'] });
+  } catch(e){}
+}
+function countObj(o){ var n = 0; for (var k in o) n += (o[k] || []).length; return n; }
+
+// تصنيف بنود المرتب حسب عنوان العمود
+function kindOf(t){
+  t = String(t || '');
+  if (/خصم|جزاء|عجز|كانسل|سلف|غرام|مخالف|استقطاع|تأمين|تامين/.test(t)) return 'minus';
+  if (/تعويض|بونص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus/i.test(t)) return 'plus';
+  return 'info';
+}
+function groupDetails(items){
+  var g = { plus:{ items:[], sum:0 }, minus:{ items:[], sum:0 }, info:{ items:[], sum:0 } };
+  items.forEach(function(it){
+    var k = kindOf(it.title), n = toNum(it.value);
+    if (k !== 'info' && n === null && String(it.value).trim() === '-') k = 'info';
+    g[k].items.push(it);
+    if (n !== null) g[k].sum += Math.abs(n);
+  });
+  return g;
+}
+
+function renderSalary(){
+  var box = $('salary-content');
+  if (!S.data) { box.hidden = true; box.innerHTML = ''; $('salary-empty').hidden = false; return; }
+  $('salary-empty').hidden = true; box.hidden = false;
+  var c = S.company, d = S.data;
+  var h = '<div class="sal-head"><img src="' + esc(c.logo) + '" alt=""><div class="who"><b>' + esc(d.name || '-') + '</b>' +
+          '<span class="meta"><span class="num">ID ' + esc(S.riderId) + '</span> · ' + esc(d.vehicle || '-') + (d.city && d.city !== '-' ? ' · ' + esc(d.city) : '') + '</span></div>' +
+          '<button class="ghost sm" id="btn-logout">خروج</button></div>';
+  if (S.offlineAt) h += '<div class="offline" role="status">📡 <span>مفيش نت. دي آخر بيانات اتحفظت ' + esc(ago(S.offlineAt)) + '.</span><button class="ghost sm" id="btn-retry">حدّث</button></div>';
+  if (d.extras) {
+    var ex = d.extras;
+    var segs = [['salary','المرتب',d.weeks.length],['canceled','كانسل',countObj(ex.canceled)],['compensations','تعويضات',countObj(ex.compensations)],['deductions','خصم مشرف',countObj(ex.deductions)]];
+    h += '<div class="seg" role="tablist">' + segs.map(function(s){
+      return '<button role="tab" data-sec="' + s[0] + '" class="' + (S.section === s[0] ? 'on' : '') + '" aria-selected="' + (S.section === s[0]) + '">' + s[1] + '<span class="cnt">' + s[2] + '</span></button>';
+    }).join('') + '</div>';
+  }
+  h += '<div id="sec-body" class="view"></div>';
+  box.innerHTML = h;
+  $('btn-logout').onclick = logoutCurrent;
+  if ($('btn-retry')) $('btn-retry').onclick = function(){ selectCompany(S.company); };
+  box.querySelectorAll('[data-sec]').forEach(function(b){ b.onclick = function(){ S.section = b.dataset.sec; renderSalary(); }; });
+  renderSection();
+}
+
+function capStrip(){
+  return '<div class="cap-strip"><span>' + esc(S.company.name) + ' · ' + esc(S.data.name || '-') + '</span><span class="num">ID ' + esc(S.riderId) + '</span></div>';
+}
+var CAP_FOOT = '<div class="cap-foot">Full Speed Payroll Hub • مستند إلكتروني</div>';
+function actionsHTML(pdf){
+  return '<div class="actions">' + (pdf ? '<button class="ghost" id="btn-pdf">📄 تحميل PDF</button>' : '') + '<button class="ghost" id="btn-shot">🖼️ حفظ صورة</button></div>';
+}
+function emptyBox(em, title, sub){ return '<div class="empty"><div class="em">' + em + '</div><b>' + title + '</b>' + (sub || '') + '</div>'; }
+
+function renderSection(){
+  var b = $('sec-body');
+  if (S.section === 'salary') b.innerHTML = salaryHTML();
+  else if (S.section === 'deductions') b.innerHTML = deductionsHTML();
+  else b.innerHTML = ordersHTML(S.section);
+  b.querySelectorAll('[data-w]').forEach(function(x){ x.onclick = function(){ S.week = +x.dataset.w; renderSection(); }; });
+  b.querySelectorAll('[data-ew]').forEach(function(x){ x.onclick = function(){ S.ew[S.section] = x.dataset.ew; renderSection(); }; });
+  if ($('btn-pdf')) $('btn-pdf').onclick = downloadPDF;
+  if ($('btn-shot')) $('btn-shot').onclick = downloadShot;
+  var ch = b.querySelector('.chips'); if (ch) { var on = ch.querySelector('.on'); if (on) on.scrollIntoView({ block:'nearest', inline:'center' }); }
+}
+
+function salaryHTML(){
+  var d = S.data;
+  if (!d.weeks.length) return emptyBox('📉', 'مفيش مرتبات متسجلة لك لحد دلوقتي.');
+  var w = d.weeks[S.week] || d.weeks[d.weeks.length - 1];
+  var g = groupDetails(w.details || []);
+  var open = document.body.dataset.layout !== 'fast';
+  var chips = d.weeks.length > 1 ? '<div class="chips">' + d.weeks.map(function(x, i){
+    return '<button class="chip' + (i === S.week ? ' on' : '') + '" data-w="' + i + '">' + esc(x.week_label) + '</button>';
+  }).join('') + '</div>' : '';
+  var split = '';
+  if (g.plus.sum > 0 && g.minus.sum > 0) {
+    var pct = Math.max(4, Math.min(100, Math.round(100 * (1 - g.minus.sum / g.plus.sum))));
+    split = '<div class="bar" aria-hidden="true"><span style="width:' + pct + '%"></span></div>' +
+            '<div class="hero-split"><span>مستحقات <b class="num">' + fmt(g.plus.sum) + '</b></span><span>خصومات <b class="num">' + fmt(g.minus.sum) + '</b></span></div>';
+  }
+  var hero = '<div class="hero"><div class="hero-top">' + esc(w.top_title || 'صافي المستحقات') + '</div>' +
+             '<div class="hero-amt num">' + esc(fmt(w.final_total)) + ' <small>EGP</small></div>' +
+             '<div class="hero-sub">' + esc(w.sub_title || '') + '</div>' + split + '</div>';
+  var groups = grpHTML('plus', 'المستحقات', g.plus, open) + grpHTML('minus', 'الخصومات', g.minus, open) + grpHTML('info', 'تفاصيل الشغل', g.info, open && !g.plus.items.length);
+  return chips + '<div id="capture">' + capStrip() + hero + groups + CAP_FOOT + '</div>' + actionsHTML(true);
+}
+function grpHTML(key, title, g, open){
+  if (!g.items.length) return '';
+  return '<details class="grp grp-' + key + '"' + (open ? ' open' : '') + '><summary><span class="ttl">' + title + ' <span class="cnt">' + g.items.length + '</span></span>' +
+         (key !== 'info' && g.sum ? '<b class="tot num">' + fmt(g.sum) + '</b>' : '') + '</summary><div class="rows">' +
+         g.items.map(function(it){ return '<div class="r"><span>' + esc(it.title) + '</span><b class="num">' + esc(fmt(it.value)) + '</b></div>'; }).join('') +
+         '</div></details>';
+}
+
+function ordersHTML(sec){
+  var isCan = sec === 'canceled';
+  var obj = S.data.extras[sec] || {}, keys = Object.keys(obj);
+  if (!keys.length) return emptyBox('🎉', isCan ? 'مفيش أوردرات كانسل عليك. عاش!' : 'مفيش تعويضات متسجلة لك.');
+  var cur = S.ew[sec] && obj[S.ew[sec]] ? S.ew[sec] : keys[keys.length - 1];
+  var k = isCan ? 'var(--minus)' : 'var(--plus)';
+  var chips = '<div class="chips">' + keys.map(function(x){ return '<button class="chip' + (x === cur ? ' on' : '') + '" data-ew="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>';
+  var total = 0;
+  var cards = obj[cur].map(function(it){
+    var amt = isCan ? it['Cancelled orders Deduction Amount'] : it['Compensation Amount'];
+    var n = toNum(amt); if (n !== null) total += Math.abs(n);
+    return '<div class="ocard" style="--k:' + k + '"><div class="top"><div><div class="lbl">كود الأوردر</div><div class="code">' + esc(isCan ? it['Order code'] : it['Order ID']) + '</div></div>' +
+           '<div><div class="lbl">' + (isCan ? 'قيمة الخصم' : 'قيمة التعويض') + '</div><div class="amt">' + (isCan ? '- ' : '+ ') + esc(fmt(amt || 0)) + ' EGP</div></div></div>' +
+           '<div class="reason">' + esc(isCan ? it.comment : it.Comment) + '</div>' +
+           '<div class="meta">📍 نقطة الفتح: <strong>' + esc(it['Starting Point']) + '</strong> · 🏙️ <strong>' + esc(it.City) + '</strong></div>' +
+           '<div class="small">📅 ' + esc(it['Order Date']) + '</div></div>';
+  }).join('');
+  var sum = '<div class="sum-line" style="--k:' + k + '"><span>' + (isCan ? 'إجمالي خصم الكانسل' : 'إجمالي التعويضات') + ' (' + obj[cur].length + ')</span><span class="num">' + fmt(total) + ' EGP</span></div>';
+  return chips + '<div id="capture">' + capStrip() + sum + cards + CAP_FOOT + '</div>' + actionsHTML(false);
+}
+
+function deductionsHTML(){
+  var obj = S.data.extras.deductions || {}, months = Object.keys(obj);
+  if (!months.length) return emptyBox('🎉', 'مفيش خصومات مشرفين عليك. عاش!');
+  var html = months.map(function(m, i){
+    var tot = 0;
+    var cards = obj[m].map(function(it){
+      var amt = it['خصم المشرف']; var n = toNum(amt); if (n !== null) tot += Math.abs(n);
+      return '<div class="ocard" style="--k:var(--warn)"><div class="top"><b>📌 ' + esc(it['الاسبوع'] || 'أخرى') + '</b><div class="amt">- ' + esc(fmt(amt || 0)) + ' EGP</div></div>' +
+             '<div class="meta">👨‍💼 المشرف: <strong>' + esc(it['المشرف']) + '</strong></div>' +
+             '<div class="meta">📍 الفتح: <strong>' + esc(it['نقطة الفتح']) + '</strong> · 🗺️ <strong>' + esc(it['المنطقة']) + '</strong></div></div>';
+    }).join('');
+    return '<details class="grp grp-minus"' + (i === months.length - 1 ? ' open' : '') + '><summary><span class="ttl">📅 ' + esc(m) + ' <span class="cnt">' + obj[m].length + '</span></span><b class="tot num">' + fmt(tot) + '</b></summary><div class="view" style="padding:10px;gap:8px">' + cards + '</div></details>';
+  }).join('');
+  return '<div id="capture">' + capStrip() + html + CAP_FOOT + '</div>' + actionsHTML(false);
+}
+
+function logoutCurrent(){
+  var c = S.company; if (!c) return;
+  forget(c);
+  toast('خرجت من حساب ' + c.name);
+  goTab('home');
+}
+
+/* =========================================================================
+   التصدير (صورة و PDF)
+   ========================================================================= */
+async function downloadShot(){
+  var area = $('capture'); if (!area || typeof html2canvas !== 'function') return toast('الخاصية دي مش متاحة دلوقتي');
+  toast('📸 بنجهز الصورة…', 0);
+  area.classList.add('capturing');
+  area.querySelectorAll('details').forEach(function(d){ d.dataset.was = d.open ? '1' : ''; d.open = true; });
+  try {
+    var bg = getComputedStyle(document.body).getPropertyValue('--bg-app').trim() || '#080d0a';
+    var canvas = await html2canvas(area, { backgroundColor:bg, scale:2, useCORS:true, logging:false });
+    var a = document.createElement('a');
+    a.download = 'FullSpeed_' + S.company.id + '_' + S.section + '_' + S.riderId + '.png';
+    a.href = canvas.toDataURL('image/png'); a.click();
+    toast('✓ الصورة اتحفظت');
+  } catch (err) { toast('مقدرناش نحفظ الصورة: ' + err.message, 4000); }
+  area.classList.remove('capturing');
+  area.querySelectorAll('details').forEach(function(d){ d.open = d.dataset.was === '1'; });
+}
+
+async function downloadPDF(){
+  if (!window.jspdf || typeof html2canvas !== 'function') return toast('الخاصية دي مش متاحة دلوقتي');
+  var w = S.data.weeks[S.week]; if (!w) return;
+  toast('📄 بنجهز الـ PDF…', 0);
+  var c = S.company, brand = c.brandColor, onB = textOn(brand), brandTxt = lum(brand) > 0.6 ? '#111827' : brand;
+  var now = new Date(), printed = now.toLocaleDateString('ar-EG') + ' - ' + now.toLocaleTimeString('ar-EG');
+  var g = groupDetails(w.details || []);
+  function rows(title, grp, color){
+    if (!grp.items.length) return '';
+    return '<tr><td colspan="2" style="padding:9px 14px;background:#f3f4f6;font-weight:900;font-size:13px;color:' + color + '">' + title + '</td></tr>' +
+      grp.items.map(function(it, i){
+        return '<tr style="background:' + (i % 2 ? '#fff' : '#fafafa') + ';border-bottom:1px solid #e5e7eb"><td style="padding:9px 14px;font-weight:700;color:#374151;font-size:13px">' + esc(it.title) + '</td><td style="padding:9px 14px;font-weight:900;color:' + color + ';font-size:14px;text-align:left;direction:ltr">' + esc(fmt(it.value)) + '</td></tr>';
+      }).join('');
+  }
+  var box = document.createElement('div');
+  box.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;background:#fff;color:#111827;font-family:Cairo,sans-serif;direction:rtl;padding:36px;box-sizing:border-box';
+  box.innerHTML =
+    '<div style="border:2px solid ' + brand + ';border-radius:16px;padding:26px;background:#fff">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #f3f4f6;padding-bottom:16px;margin-bottom:18px">' +
+        '<div><div style="font-size:24px;font-weight:900;color:#00A651">FULL SPEED</div><div style="font-size:11.5px;font-weight:700;color:#6b7280">Logistics &amp; Last-Mile Solutions</div></div>' +
+        '<div style="text-align:center"><div style="font-size:18px;font-weight:900">بيان صرف الراتب</div><div style="font-size:13.5px;font-weight:900;color:' + brandTxt + '">Full Speed <span style="color:#F5A623">X</span> ' + esc(c.name) + '</div></div>' +
+        '<div style="text-align:left"><div style="font-size:10.5px;font-weight:700;color:#9ca3af">تاريخ الاستخراج</div><div style="font-size:11px;font-weight:800;color:#374151">' + esc(printed) + '</div></div>' +
+      '</div>' +
+      '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;justify-content:space-between;text-align:center">' +
+        '<div><div style="font-size:11px;font-weight:700;color:#6b7280">المندوب</div><div style="font-size:15px;font-weight:900">' + esc(S.data.name || '-') + '</div></div>' +
+        '<div><div style="font-size:11px;font-weight:700;color:#6b7280">الكود</div><div style="font-size:15px;font-weight:900;color:' + brandTxt + '">' + esc(S.riderId) + '</div></div>' +
+        '<div><div style="font-size:11px;font-weight:700;color:#6b7280">الفترة</div><div style="font-size:14px;font-weight:900;color:' + brandTxt + '">' + esc(w.week_label) + '</div></div>' +
+      '</div>' +
+      '<div style="background:' + brand + ';border-radius:14px;padding:18px;text-align:center;color:' + onB + ';margin-bottom:20px"><div style="font-size:14px;font-weight:700">' + esc(w.top_title) + '</div><div style="font-size:42px;font-weight:900;direction:ltr">' + esc(fmt(w.final_total)) + ' <span style="font-size:17px">EGP</span></div><div style="font-size:12px;font-weight:700">' + esc(w.sub_title || '') + '</div></div>' +
+      '<table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb">' +
+        '<tr style="background:#111827;color:#fff"><th style="padding:10px 14px;font-size:12px;text-align:right">البند</th><th style="padding:10px 14px;font-size:12px;text-align:left">القيمة</th></tr>' +
+        rows('المستحقات', g.plus, '#047a3c') + rows('الخصومات', g.minus, '#c62828') + rows('تفاصيل الشغل', g.info, '#111827') +
+      '</table>' +
+    '</div>';
+  document.body.appendChild(box);
+  try {
+    var canvas = await html2canvas(box, { scale:2, useCORS:true, backgroundColor:'#ffffff' });
+    var pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+    var pw = pdf.internal.pageSize.getWidth() - 16, ph = pdf.internal.pageSize.getHeight() - 16;
+    var h = canvas.height * pw / canvas.width;
+    var img = canvas.toDataURL('image/jpeg', 0.95);
+    // لو البيان أطول من صفحة، نقسمه على كذا صفحة بدل ما يتقص
+    var y = 0;
+    while (y < h) {
+      if (y > 0) pdf.addPage();
+      pdf.addImage(img, 'JPEG', 8, 8 - y, pw, h);
+      y += ph;
+    }
+    pdf.save('Payroll_' + c.id + '_' + S.riderId + '.pdf');
+    toast('✓ الـ PDF اتحفظ');
+  } catch (err) { toast('مقدرناش نعمل PDF: ' + err.message, 4000); }
+  document.body.removeChild(box);
+}
+
+/* =========================================================================
+   حسابي
+   ========================================================================= */
+var installEvt = null;
+function isStandalone(){ return (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true; }
+function renderInstall(){
+  var canPrompt = !!installEvt && !isStandalone();
+  $('install-btn').hidden = !canPrompt;
+  $('install-bar').hidden = !canPrompt;
+  var link = $('app-link');
+  link.hidden = !(IS_GAS && APP_URL);
+  if (APP_URL) link.href = APP_URL;
+}
+function doInstall(){
+  if (!installEvt) return;
+  installEvt.prompt();
+  installEvt.userChoice.then(function(ch){ if (ch.outcome === 'accepted') toast('✓ التطبيق اتثبت'); installEvt = null; renderInstall(); });
+}
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); installEvt = e; renderInstall(); });
+window.addEventListener('appinstalled', function(){ installEvt = null; renderInstall(); });
+$('install-btn').onclick = doInstall;
+$('install-bar').onclick = doInstall;
+
+function renderBio(){
+  var tog = $('bio-tog'), note = $('bio-note');
+  tog.setAttribute('aria-checked', BIO.enabled() && BIO.supported ? 'true' : 'false');
+  tog.disabled = !BIO.supported;
+  note.textContent = BIO.supported
+    ? (BIO.enabled() ? 'شغّالة: الحسابات المحفوظة مش هتتفتح غير ببصمتك أو قفل الموبايل.' : 'بدل الرقم السري كل مرة، والحسابات المحفوظة متفتحش لحد غيرك.')
+    : (IS_GAS ? 'متاحة في التطبيق المتثبت بس، مش من رابط Google.' : 'الموبايل ده مفيهوش بصمة أو قفل شاشة متفعّل.');
+}
+$('bio-tog').onclick = function(){
+  if (!BIO.supported) return;
+  if (BIO.enabled()) { store.del('fs_bio'); renderBio(); toast('اتقفلت البصمة'); return; }
+  BIO.enroll().then(function(){ renderBio(); toast('✓ البصمة اتفعّلت'); })
+    .catch(function(){ toast('مقدرناش نفعّل البصمة. جرب تاني.'); });
+};
+
+function renderAccount(){
+  renderBio(); renderInstall();
+  var rows = COMPANIES.filter(function(c){ return store.get('fs_sess_' + c.id); });
+  $('sessions').innerHTML = rows.length ? rows.map(function(c){
+    var s = store.get('fs_sess_' + c.id);
+    return '<div class="list-row"><img src="' + esc(c.logo) + '" alt=""><div class="t"><b>' + esc(c.name) + '</b><div class="small num" style="text-align:right">ID ' + esc(s.id) + '</div></div><button class="ghost sm" data-out="' + c.id + '">خروج</button></div>';
+  }).join('') : '<p class="small" style="margin:6px 0 0">مفيش حسابات محفوظة. لما تدخل وتعلّم على «افتكرني» هيظهر هنا.</p>';
+  $('sessions').querySelectorAll('[data-out]').forEach(function(b){
+    b.onclick = function(){
+      var c = findCo(b.dataset.out);
+      forget(c);
+      toast('خرجت من ' + c.name); renderAccount();
+    };
+  });
+}
+
+/* =========================================================================
+   التشغيل
+   ========================================================================= */
+(function init(){
+  // النسخة القديمة كانت بتحفظ الرقم السري نفسه، فبنمسحه
+  store.keys().forEach(function(k){ if (k.indexOf('fs_auth_') === 0) store.del(k); });
+  var oldTheme = null; try { oldTheme = localStorage.getItem('fs_payroll_theme'); } catch(e){}
+  applyTheme(store.get('fs_theme') || (oldTheme === 'light' ? 'light' : 'dark'));
+  applyLayout(store.get('fs_layout') || 'wallet', false);
+  BIO.check().then(renderBio);
+  renderInstall();
+  if (IS_APP && 'serviceWorker' in navigator && window.isSecureContext) {
+    navigator.serviceWorker.register('sw.js').catch(function(){});
+  }
+  window.addEventListener('online', function(){ if (S.offlineAt && S.view === 'salary') selectCompany(S.company); });
+
+  var seen = false; try { seen = sessionStorage.getItem('fs_splash') === '1'; sessionStorage.setItem('fs_splash','1'); } catch(e){}
+  if (seen || reducedMotion()) { renderHome(false); show('home'); return; }
+  var sp = $('splash'); sp.hidden = false;
+  show('home'); renderHome(false); $('co-grid').innerHTML = '';
+  setTimeout(function(){ sp.classList.add('up'); renderHome(true); setTimeout(function(){ sp.remove(); }, 750); }, 900);
+})();
+</script>
+</body>
+</html>
