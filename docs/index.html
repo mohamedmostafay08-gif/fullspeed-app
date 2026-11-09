@@ -14,6 +14,8 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -48,18 +50,18 @@ button{cursor:pointer}
 [hidden]{display:none!important}
 .num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
 
-.app{width:100%;max-width:440px;height:100%;background:var(--bg-app);position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow)}
+.app{width:100%;max-width:440px;height:100%;height:100dvh;background:var(--bg-app);position:relative;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow)}
 @media (min-width:500px){body{align-items:center}.app{height:94vh;border-radius:32px;border:4px solid var(--line)}}
 
 /* =================== الشريط العلوي والسفلي =================== */
 .topbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid var(--line);background:var(--bg-app)}
 .top-spacer{width:44px;flex-shrink:0}
-.clock{display:inline-flex;align-items:center;gap:8px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--green-hi);box-shadow:0 2px 6px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden}
+.clock{display:inline-flex;align-items:center;gap:clamp(5px,1.6vw,8px);min-width:0;font-size:clamp(11.5px,3.4vw,13px)!important;padding:7px clamp(10px,3vw,14px)!important;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--green-hi);box-shadow:0 2px 6px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden}
 .clock .dot{width:8px;height:8px;border-radius:50%;background:#ff453a;box-shadow:0 0 8px #ff453a;flex-shrink:0;animation:pulse 1.5s infinite}
 .clock .sep{opacity:.45}
 @keyframes pulse{0%{transform:scale(.85);opacity:1}70%{transform:scale(1.25);opacity:.55}100%{transform:scale(.85);opacity:1}}
 .icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:inline-grid;place-items:center;font-size:18px}
-.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 16px 96px}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px max(14px,env(safe-area-inset-right,0px)) calc(92px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px))}
 .tabbar{position:absolute;inset:auto 0 0 0;display:flex;justify-content:space-around;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
 .tab{flex:1;min-height:56px;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;font-weight:700;color:var(--ink-3);border-radius:12px}
 .tab svg{width:22px;height:22px}
@@ -106,12 +108,12 @@ select.input{appearance:none}
 
 /* =================== الرئيسية =================== */
 .brand-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:6px 0 4px}
-.brand-logo{width:108px;height:108px;border-radius:50%;padding:4px;margin-bottom:8px;background:conic-gradient(from 210deg,#00E676,#00A651,#F5A623,#00E676);box-shadow:0 10px 30px rgba(0,230,118,.22),0 0 0 6px color-mix(in srgb,var(--green) 10%,transparent);animation:glow 3s ease-in-out infinite alternate}
+.brand-logo{width:clamp(88px,26vw,108px);height:clamp(88px,26vw,108px);border-radius:50%;padding:4px;margin-bottom:8px;background:conic-gradient(from 210deg,#00E676,#00A651,#F5A623,#00E676);box-shadow:0 10px 30px rgba(0,230,118,.22),0 0 0 6px color-mix(in srgb,var(--green) 10%,transparent);animation:glow 3s ease-in-out infinite alternate}
 .brand-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#050a07;border:3px solid var(--bg-app);display:block}
 @keyframes glow{from{box-shadow:0 8px 22px rgba(0,230,118,.16),0 0 0 6px color-mix(in srgb,var(--green) 8%,transparent)}to{box-shadow:0 12px 36px rgba(0,230,118,.32),0 0 0 9px color-mix(in srgb,var(--green) 12%,transparent)}}
-.brand-hero h1{font-size:23px;font-weight:900;direction:ltr;letter-spacing:-.2px}
+.brand-hero h1{font-size:clamp(18px,6vw,23px);font-weight:900;direction:ltr;letter-spacing:-.2px;white-space:nowrap}
 .brand-hero h1 span{color:var(--green-hi)}
-.tagline{margin:0;color:var(--gold);font-size:13px;font-weight:700;font-style:italic;direction:ltr}
+.tagline{margin:0;color:var(--gold);font-size:clamp(11px,3.4vw,13px);font-weight:700;font-style:italic;direction:ltr;white-space:nowrap}
 body.light .tagline{color:#c27a00}
 .greet{margin:10px 0 0;font-size:14px;font-weight:700;color:var(--ink-2)}
 .continue{display:flex;align-items:center;gap:12px;width:100%;text-align:right;border:0;border-radius:18px;padding:14px;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#000));color:var(--on);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 30%,transparent)}
@@ -126,9 +128,9 @@ body.light .tagline{color:#c27a00}
 .sec-label{font-size:13px;font-weight:800;color:var(--ink-3);margin:2px 4px -4px}
 .co-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 6px}
 .co{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;min-width:0}
-.co .ring{width:62px;height:62px;border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--c),rgba(128,128,128,.25))}
+.co .ring{width:clamp(54px,15.5vw,62px);height:clamp(54px,15.5vw,62px);border-radius:50%;padding:2.5px;background:linear-gradient(135deg,var(--c),rgba(128,128,128,.25))}
 .co img{width:100%;height:100%;border-radius:50%;background:#fff;object-fit:cover;display:block}
-.co .nm{font-size:12px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.co .nm{font-size:clamp(11px,3.2vw,12px);font-weight:700;max-width:100%;line-height:1.25;text-align:center;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
 .co:active{transform:scale(.94)}
 .drop .co{animation:drop .5s cubic-bezier(.34,1.56,.64,1) both}
 @keyframes drop{from{opacity:0;transform:translateY(-40px) scale(.7)}to{opacity:1;transform:none}}
@@ -155,6 +157,9 @@ body.light .tagline{color:#c27a00}
 .sal-head .who{flex:1;min-width:0}
 .sal-head b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sal-head .meta{font-size:13px;color:var(--ink-3)}
+.sync{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-3);font-weight:700}
+.sync::before{content:'';width:10px;height:10px;border-radius:50%;border:2px solid var(--green-hi);border-top-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surface-2);padding:4px;border-radius:14px}
 .seg button{min-height:44px;border:0;border-radius:10px;background:none;font-weight:800;font-size:12.5px;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.3;gap:2px}
 .seg button.on{background:var(--brand);color:var(--on-brand)}
@@ -170,7 +175,7 @@ body.light .tagline{color:#c27a00}
 
 .hero{border-radius:22px;padding:22px 18px;text-align:center;color:var(--on-brand);background:linear-gradient(135deg,var(--brand),color-mix(in srgb,var(--brand) 35%,#0b0f0c));box-shadow:0 12px 30px var(--brand-glow)}
 .hero-top{font-size:14.5px;font-weight:800;opacity:.95}
-.hero-amt{font-size:46px;font-weight:900;line-height:1.15;margin:6px 0 2px}
+.hero-amt{font-size:clamp(36px,12vw,46px);font-weight:900;line-height:1.15;margin:6px 0 2px}
 .hero-amt small{font-size:16px;opacity:.9}
 .hero-sub{font-size:13px;font-weight:700;opacity:.9}
 .hero-note{margin-top:10px;font-size:12.5px;font-weight:700;background:color-mix(in srgb,var(--on-brand) 14%,transparent);border-radius:10px;padding:6px 10px}
@@ -272,7 +277,7 @@ body[data-layout="slip"] .cap-strip{display:flex}
    الاتجاه ج: بسيط وسريع (fast)
    ============================================================ */
 body[data-layout="fast"] .hero{background:none;box-shadow:none;color:var(--ink);padding:10px 4px;text-align:right}
-body[data-layout="fast"] .hero-amt{font-size:60px}
+body[data-layout="fast"] .hero-amt{font-size:clamp(44px,15vw,60px)}
 body[data-layout="fast"] .hero-split{border:0;padding:0;margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 body[data-layout="fast"] .hero-split span{background:var(--plus-bg);color:var(--plus);border-radius:14px;padding:12px;display:flex;flex-direction:column}
 body[data-layout="fast"] .hero-split span+span{background:var(--minus-bg);color:var(--minus)}
@@ -290,7 +295,7 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
 <body data-layout="wallet">
 
 <div id="splash" hidden>
-  <div class="logo"><img src="https://drive.google.com/thumbnail?id=1A0ZcNlSMy_WJsM1sHrstHjBBW55Zsnw1&sz=w600" alt="Full Speed"></div>
+  <div class="logo"><img src="https://mohamedmostafay08-gif.github.io/fullspeed-app/logos/fullspeed.jpg" alt="Full Speed"></div>
   <p>Not just faster, Smarter.</p>
 </div>
 
@@ -306,7 +311,7 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
     <!-- ============ الرئيسية ============ -->
     <section id="view-home" class="view">
       <div class="brand-hero">
-        <div class="brand-logo"><img src="https://drive.google.com/thumbnail?id=1A0ZcNlSMy_WJsM1sHrstHjBBW55Zsnw1&sz=w600" alt="Full Speed"></div>
+        <div class="brand-logo"><img src="https://mohamedmostafay08-gif.github.io/fullspeed-app/logos/fullspeed.jpg" alt="Full Speed"></div>
         <h1>Full Speed <span>Payroll Hub</span></h1>
         <p class="tagline">Full Speed – Not Just Faster. Smarter.</p>
         <p class="greet"><span id="greet">أهلاً بيك</span> اختار شركتك وشوف مرتبك</p>
@@ -437,7 +442,8 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
 /* =========================================================================
    البيانات الثابتة
    ========================================================================= */
-var DRIVE = 'https://drive.google.com/thumbnail?sz=w400&id=';
+// اللوجوهات متخزنة مع التطبيق على GitHub Pages (آيفون بيمنع صور Google Drive)
+var ASSET_BASE = (typeof google !== 'undefined' && google.script) ? 'https://mohamedmostafay08-gif.github.io/fullspeed-app/' : '';
 var COMPANIES = [
   { id:'talabat', name:'Talabat', sheetName:'Talabat', logo:'14PU-JRloV8TUBceheEjbv6BJbMlnCAn1', brandColor:'#ff5a00' },
   { id:'amazon', name:'Amazon Now', sheetName:'Amazon now', logo:'1tH0hqDpJnbmBiihabxupQwf-r0Ax-pZC', brandColor:'#ff9900' },
@@ -466,7 +472,7 @@ var COMPANIES = [
   { id:'yalla_fel_sekka', name:'Yalla Fel Sekka', sheetName:'Yalla Fel Sekka', logo:'1cqBE2AvCwp_VFwtyN_aELyPeYSlolrTv', brandColor:'#00aae6' },
   { id:'rumis', name:"Rumi's", sheetName:"Rumi's", logo:'1nEj5ogMKTAIWNrv_ptTDTfJdpqamhCKt', brandColor:'#1d81b9' }
 ];
-COMPANIES.forEach(function(c){ c.logo = DRIVE + c.logo; });
+COMPANIES.forEach(function(c){ c.logo = ASSET_BASE + 'logos/' + c.id + '.jpg'; });
 var LAYOUTS = { wallet:'dark', slip:'light', fast:'dark' };
 
 var S = { company:null, riderId:'', data:null, week:0, section:'salary', ew:{}, setup:false, view:'home' };
@@ -659,7 +665,7 @@ $('co-grid').addEventListener('click', function(e){ var b = e.target.closest('[d
    ========================================================================= */
 function selectCompany(c){
   if (!c) return;
-  S.company = c; S.data = null; S.riderId = '';
+  S.company = c; S.data = null; S.riderId = ''; S.syncing = false;
   setBrand(c);
   store.set('fs_last', c.id);
   var sess = store.get('fs_sess_' + c.id);
@@ -669,14 +675,25 @@ function selectCompany(c){
     var go = function(){
       var cached = loadOffline(c);
       if (navigator.onLine === false && cached) { S.riderId = cached.id; onData(cached.data, cached.at); return; }
+      // نعرض آخر نسخة محفوظة فورًا، ونحدّثها من السيرفر في الخلفية
+      var shownFromCache = false;
+      if (cached && cached.id === sess.id) {
+        S.riderId = cached.id; S.syncing = true; onData(cached.data, 0, true); shownFromCache = true;
+      }
       call('loginWithToken', [c.sheetName, sess.id, sess.token], function(res){
-        if (res && res.success) { S.riderId = res.riderId || sess.id; saveOffline(c, S.riderId, res.data); onData(res.data); }
-        else {
+        if (S.company !== c) return;
+        S.syncing = false;
+        if (res && res.success) {
+          S.riderId = res.riderId || sess.id; saveOffline(c, S.riderId, res.data);
+          if (shownFromCache) refreshData(res.data); else onData(res.data);
+        } else {
           if (res && res.expired) { store.del('fs_sess_' + c.id); store.del('fs_data_' + c.id); }
-          show('login'); loginError(res && res.message ? res.message : 'ادخل بالرقم السري تاني.');
+          S.data = null; show('login'); loginError(res && res.message ? res.message : 'ادخل بالرقم السري تاني.');
         }
       }, function(){
-        if (cached) { S.riderId = cached.id; onData(cached.data, cached.at); return; }
+        if (S.company !== c) return;
+        S.syncing = false;
+        if (cached) { S.riderId = cached.id; S.offlineAt = cached.at; if (shownFromCache) renderSalary(); else onData(cached.data, cached.at); return; }
         show('login'); loginError('مفيش اتصال بالنت. اتأكد من النت وجرب تاني.');
       });
     };
@@ -745,12 +762,19 @@ function normalize(d){
   }
   return { name:d.rider_name, vehicle:d.vehicle_type, weeks:d.weeks || [], extras:null };
 }
-function onData(raw, offlineAt){
+// تحديث هادي بعد ما النسخة المحفوظة اتعرضت: بنحافظ على الأسبوع والقسم المفتوحين
+function refreshData(raw){
+  var oldLen = S.data ? S.data.weeks.length : 0, wasLast = S.week >= oldLen - 1;
+  S.data = normalize(raw || {}); S.offlineAt = 0;
+  if (wasLast || S.week >= S.data.weeks.length) S.week = Math.max(0, S.data.weeks.length - 1);
+  if (S.view === 'salary') { var sc = $('scroll').scrollTop; renderSalary(); $('scroll').scrollTop = sc; }
+}
+function onData(raw, offlineAt, quiet){
   S.data = normalize(raw || {});
   S.offlineAt = offlineAt || 0;
   S.section = 'salary'; S.ew = {};
   S.week = Math.max(0, S.data.weeks.length - 1);
-  renderSalary(); show('salary'); if (!offlineAt) celebrate();
+  renderSalary(); show('salary'); if (!offlineAt && !quiet) celebrate();
 }
 function celebrate(){
   try {
@@ -788,7 +812,7 @@ function renderSalary(){
   $('salary-empty').hidden = true; box.hidden = false;
   var c = S.company, d = S.data;
   var h = '<div class="sal-head"><img src="' + esc(c.logo) + '" alt=""><div class="who"><b>' + esc(d.name || '-') + '</b>' +
-          '<span class="meta"><span class="num">ID ' + esc(S.riderId) + '</span> · ' + esc(d.vehicle || '-') + (d.city && d.city !== '-' ? ' · ' + esc(d.city) : '') + '</span></div>' +
+          '<span class="meta"><span class="num">ID ' + esc(S.riderId) + '</span> · ' + esc(d.vehicle || '-') + (d.city && d.city !== '-' ? ' · ' + esc(d.city) : '') + '</span>' + (S.syncing ? '<span class="sync">بنحدّث…</span>' : '') + '</div>' +
           '<button class="ghost sm" id="btn-logout">خروج</button></div>';
   if (S.offlineAt) h += '<div class="offline" role="status">📡 <span>مفيش نت. دي آخر بيانات اتحفظت ' + esc(ago(S.offlineAt)) + '.</span><button class="ghost sm" id="btn-retry">حدّث</button></div>';
   if (d.extras) {

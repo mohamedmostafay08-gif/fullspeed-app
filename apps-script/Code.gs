@@ -236,7 +236,17 @@ function findRider_(ss, companyName, riderId) {
   return null;
 }
 
+// نفس المندوب لو فتح تاني خلال 5 دقايق بياخد الرد جاهز
 function buildPayload_(companyName, sheetName, riderId) {
+  var cache = CacheService.getScriptCache();
+  var key = 'pl_' + cacheVer_() + '_' + Utilities.base64EncodeWebSafe(companyName + '|' + sheetName + '|' + riderId);
+  try { var hit = cache.get(key); if (hit) return JSON.parse(hit); } catch (e) {}
+  var data = buildPayloadFresh_(companyName, sheetName, riderId);
+  if (data) { try { var j = JSON.stringify(data); if (j.length < 90000) cache.put(key, j, CACHE_SECONDS); } catch (e) {} }
+  return data;
+}
+
+function buildPayloadFresh_(companyName, sheetName, riderId) {
   if (companyName.toLowerCase() === "talabat") {
     var t = getTalabatSuperAppData_(riderId);
     t.type = "talabat";
@@ -362,7 +372,9 @@ function loginWithTokenCore_(companyName, riderId, token) {
     }
     if (!ok) return fail_("الجلسة خلصت. ادخل بالرقم السري تاني.", { expired: true });
 
-    var sheetName = findRider_(ss, companyName, id);
+    // نون مينتس بس اللي ليها أكتر من شيت، فمحتاجة ندوّر المندوب في أنهي واحد
+    var sheetName = sheetsFor_(companyName).length > 1 && companyName.toLowerCase() !== "talabat"
+      ? findRider_(ss, companyName, id) : companyName;
     if (!sheetName) return fail_("الكود ده مش متسجل في بيانات " + companyName + " دلوقتي.");
     var data = buildPayload_(companyName, sheetName, id);
     if (!data) return fail_("مفيش تفاصيل مرتب متسجلة لحسابك دلوقتي.");
