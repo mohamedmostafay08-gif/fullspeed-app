@@ -118,7 +118,13 @@ function cacheVer_() {
 }
 
 // بيرجّع كل قيم الشيت (التواريخ متحولة لنص) أو null لو الشيت مش موجود
+var MEMO_ = {};   // نفس الطلب ميقراش نفس الشيت مرتين
 function readSheet_(name) {
+  if (MEMO_.hasOwnProperty(name)) return MEMO_[name];
+  return (MEMO_[name] = readSheetCached_(name));
+}
+
+function readSheetCached_(name) {
   var cache = CacheService.getScriptCache();
   var key = 'sh_' + cacheVer_() + '_' + Utilities.base64EncodeWebSafe(name);
   try {
@@ -259,9 +265,10 @@ function addSession_(sheet, rowNum, existing) {
 // confirmNew = true لما المندوب يأكد إنه بيختار رقم سري لأول مرة
 // =========================================================================
 function checkSalary(companyName, riderId, password, confirmNew) {
+  var t0 = Date.now();
   var r = checkSalaryCore_(companyName, riderId, password, confirmNew);
   log_(confirmNew ? "أول دخول (اختيار رقم سري)" : "دخول بالرقم السري", companyName, riderId,
-    r.success, r.success ? "" : (r.needsSetup ? "أول مرة - مستني تأكيد الرقم السري" : r.message));
+    r.success, (r.success ? "" : (r.needsSetup ? "أول مرة - مستني تأكيد الرقم السري" : r.message)) + " (" + (Date.now() - t0) + "ms)");
   return r;
 }
 
@@ -327,8 +334,9 @@ function checkSalaryCore_(companyName, riderId, password, confirmNew) {
 
 // الدخول التلقائي من غير رقم سري (بالتوكن المحفوظ على الموبايل)
 function loginWithToken(companyName, riderId, token) {
+  var t0 = Date.now();
   var r = loginWithTokenCore_(companyName, riderId, token);
-  log_("دخول تلقائي", companyName, riderId, r.success, r.success ? "" : r.message);
+  log_("دخول تلقائي", companyName, riderId, r.success, (r.success ? "" : r.message) + " (" + (Date.now() - t0) + "ms)");
   return r;
 }
 

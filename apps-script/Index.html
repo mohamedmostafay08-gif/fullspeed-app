@@ -45,9 +45,11 @@ button{cursor:pointer}
 
 /* =================== الشريط العلوي والسفلي =================== */
 .topbar{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;border-bottom:1px solid var(--line);background:var(--bg-app)}
-.brand-mini{display:flex;align-items:center;gap:8px;font-weight:900;font-size:15px;direction:ltr}
-.brand-mini img{width:30px;height:30px;border-radius:50%;background:#050a07;object-fit:contain;border:1.5px solid var(--green)}
-.brand-mini span{color:var(--green-hi)}
+.top-spacer{width:44px;flex-shrink:0}
+.clock{display:inline-flex;align-items:center;gap:8px;min-width:0;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:13px;font-weight:700;color:var(--green-hi);box-shadow:0 2px 6px rgba(0,0,0,.06);white-space:nowrap;overflow:hidden}
+.clock .dot{width:8px;height:8px;border-radius:50%;background:#ff453a;box-shadow:0 0 8px #ff453a;flex-shrink:0;animation:pulse 1.5s infinite}
+.clock .sep{opacity:.45}
+@keyframes pulse{0%{transform:scale(.85);opacity:1}70%{transform:scale(1.25);opacity:.55}100%{transform:scale(.85);opacity:1}}
 .icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:inline-grid;place-items:center;font-size:18px}
 .scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding:16px 16px 96px}
 .tabbar{position:absolute;inset:auto 0 0 0;display:flex;justify-content:space-around;background:var(--surface);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
@@ -95,8 +97,15 @@ select.input{appearance:none}
 @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
 
 /* =================== الرئيسية =================== */
-.hello{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.hello small{display:block;color:var(--ink-3);font-size:13px}
+.brand-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:6px 0 4px}
+.brand-logo{width:108px;height:108px;border-radius:50%;padding:4px;margin-bottom:8px;background:conic-gradient(from 210deg,#00E676,#00A651,#F5A623,#00E676);box-shadow:0 10px 30px rgba(0,230,118,.22),0 0 0 6px color-mix(in srgb,var(--green) 10%,transparent);animation:glow 3s ease-in-out infinite alternate}
+.brand-logo img{width:100%;height:100%;border-radius:50%;object-fit:cover;background:#050a07;border:3px solid var(--bg-app);display:block}
+@keyframes glow{from{box-shadow:0 8px 22px rgba(0,230,118,.16),0 0 0 6px color-mix(in srgb,var(--green) 8%,transparent)}to{box-shadow:0 12px 36px rgba(0,230,118,.32),0 0 0 9px color-mix(in srgb,var(--green) 12%,transparent)}}
+.brand-hero h1{font-size:23px;font-weight:900;direction:ltr;letter-spacing:-.2px}
+.brand-hero h1 span{color:var(--green-hi)}
+.tagline{margin:0;color:var(--gold);font-size:13px;font-weight:700;font-style:italic;direction:ltr}
+body.light .tagline{color:#c27a00}
+.greet{margin:10px 0 0;font-size:14px;font-weight:700;color:var(--ink-2)}
 .continue{display:flex;align-items:center;gap:12px;width:100%;text-align:right;border:0;border-radius:18px;padding:14px;background:linear-gradient(135deg,var(--c),color-mix(in srgb,var(--c) 55%,#000));color:var(--on);box-shadow:0 8px 24px color-mix(in srgb,var(--c) 30%,transparent)}
 .continue img{width:48px;height:48px;border-radius:14px;background:#fff;object-fit:cover;flex-shrink:0}
 .continue .t{flex:1;min-width:0}
@@ -156,6 +165,8 @@ select.input{appearance:none}
 .hero-amt{font-size:46px;font-weight:900;line-height:1.15;margin:6px 0 2px}
 .hero-amt small{font-size:16px;opacity:.9}
 .hero-sub{font-size:13px;font-weight:700;opacity:.9}
+.hero-note{margin-top:10px;font-size:12.5px;font-weight:700;background:color-mix(in srgb,var(--on-brand) 14%,transparent);border-radius:10px;padding:6px 10px}
+body[data-layout="slip"] .hero-note,body[data-layout="fast"] .hero-note{background:var(--minus-bg);color:var(--minus)}
 .hero-split{display:flex;justify-content:space-between;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid color-mix(in srgb,var(--on-brand) 25%,transparent);font-size:13px;font-weight:700}
 .hero-split b{font-size:15px}
 .bar{height:8px;border-radius:9px;background:color-mix(in srgb,var(--on-brand) 22%,transparent);overflow:hidden;margin-top:12px;direction:ltr}
@@ -277,7 +288,8 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
 
 <div class="app" id="app-wrapper">
   <header class="topbar">
-    <div class="brand-mini"><img src="https://drive.google.com/thumbnail?id=1A0ZcNlSMy_WJsM1sHrstHjBBW55Zsnw1&sz=w200" alt="">Full Speed <span>Payroll</span></div>
+    <div class="top-spacer"></div>
+    <div class="clock" role="timer" aria-live="off"><span class="dot"></span><span id="clock-date">-</span><span class="sep">•</span><span id="clock-time" class="num">--:--</span></div>
     <button class="icon-btn" id="theme-btn" aria-label="تغيير الثيم"><span id="theme-icon">☀️</span></button>
   </header>
 
@@ -285,8 +297,11 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
 
     <!-- ============ الرئيسية ============ -->
     <section id="view-home" class="view">
-      <div class="hello">
-        <div><small id="greet">أهلاً بيك</small><h1 class="h-title">اختار شركتك وشوف مرتبك</h1></div>
+      <div class="brand-hero">
+        <div class="brand-logo"><img src="https://drive.google.com/thumbnail?id=1A0ZcNlSMy_WJsM1sHrstHjBBW55Zsnw1&sz=w600" alt="Full Speed"></div>
+        <h1>Full Speed <span>Payroll Hub</span></h1>
+        <p class="tagline">Full Speed – Not Just Faster. Smarter.</p>
+        <p class="greet"><span id="greet">أهلاً بيك</span> اختار شركتك وشوف مرتبك</p>
       </div>
       <button class="continue" id="home-continue" hidden></button>
       <button class="install-bar" id="install-bar" hidden>
@@ -605,7 +620,7 @@ document.querySelectorAll('.lay').forEach(function(b){ b.onclick = function(){ a
    ========================================================================= */
 function renderHome(animate){
   var h = new Date().getHours();
-  $('greet').textContent = h < 12 ? 'صباح الخير ☀️' : 'مساء الخير 🌙';
+  $('greet').textContent = h < 12 ? 'صباح الخير ☀️' : 'مساء الخير 🌙،';
   var last = findCo(store.get('fs_last'));
   var cont = $('home-continue');
   if (last) {
@@ -741,17 +756,20 @@ function countObj(o){ var n = 0; for (var k in o) n += (o[k] || []).length; retu
 // تصنيف بنود المرتب حسب عنوان العمود
 function kindOf(t){
   t = String(t || '');
-  if (/خصم|جزاء|عجز|كانسل|سلف|غرام|مخالف|استقطاع|تأمين|تامين/.test(t)) return 'minus';
-  if (/تعويض|بونص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus/i.test(t)) return 'plus';
+  if (/تعويض/.test(t)) return 'plus';
+  if (/خصم|جزاء|عجز|كانسل على|سلف|غرام|مخالف|استقطاع|تأمين|تامين|مديوني|مديون/.test(t)) return 'minus';
+  if (/مستحق|بونص|بوانص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus|اجمالى الراتب|إجمالي الراتب|اجمالي الراتب/i.test(t)) return 'plus';
   return 'info';
 }
+// بنشيل البنود الفاضية (-) والأعمدة المتكررة في الشيت بنفس القيمة
 function groupDetails(items){
-  var g = { plus:{ items:[], sum:0 }, minus:{ items:[], sum:0 }, info:{ items:[], sum:0 } };
+  var g = { plus:{ items:[] }, minus:{ items:[] }, info:{ items:[] } }, seen = {};
   items.forEach(function(it){
-    var k = kindOf(it.title), n = toNum(it.value);
-    if (k !== 'info' && n === null && String(it.value).trim() === '-') k = 'info';
-    g[k].items.push(it);
-    if (n !== null) g[k].sum += Math.abs(n);
+    var v = String(it.value == null ? '' : it.value).trim();
+    if (v === '' || v === '-') return;
+    var key = String(it.title).trim() + '|' + v;
+    if (seen[key]) return; seen[key] = 1;
+    g[kindOf(it.title)].items.push(it);
   });
   return g;
 }
@@ -810,12 +828,8 @@ function salaryHTML(){
   var chips = d.weeks.length > 1 ? '<div class="chips">' + d.weeks.map(function(x, i){
     return '<button class="chip' + (i === S.week ? ' on' : '') + '" data-w="' + i + '">' + esc(x.week_label) + '</button>';
   }).join('') + '</div>' : '';
-  var split = '';
-  if (g.plus.sum > 0 && g.minus.sum > 0) {
-    var pct = Math.max(4, Math.min(100, Math.round(100 * (1 - g.minus.sum / g.plus.sum))));
-    split = '<div class="bar" aria-hidden="true"><span style="width:' + pct + '%"></span></div>' +
-            '<div class="hero-split"><span>مستحقات <b class="num">' + fmt(g.plus.sum) + '</b></span><span>خصومات <b class="num">' + fmt(g.minus.sum) + '</b></span></div>';
-  }
+  var neg = toNum(w.final_total) !== null && toNum(w.final_total) < 0;
+  var split = neg ? '<div class="hero-note">الصافي بالسالب: الخصومات والمديونية أكبر من المستحقات في الفترة دي.</div>' : '';
   var hero = '<div class="hero"><div class="hero-top">' + esc(w.top_title || 'صافي المستحقات') + '</div>' +
              '<div class="hero-amt num">' + esc(fmt(w.final_total)) + ' <small>EGP</small></div>' +
              '<div class="hero-sub">' + esc(w.sub_title || '') + '</div>' + split + '</div>';
@@ -825,7 +839,7 @@ function salaryHTML(){
 function grpHTML(key, title, g, open){
   if (!g.items.length) return '';
   return '<details class="grp grp-' + key + '"' + (open ? ' open' : '') + '><summary><span class="ttl">' + title + ' <span class="cnt">' + g.items.length + '</span></span>' +
-         (key !== 'info' && g.sum ? '<b class="tot num">' + fmt(g.sum) + '</b>' : '') + '</summary><div class="rows">' +
+         '</summary><div class="rows">' +
          g.items.map(function(it){ return '<div class="r"><span>' + esc(it.title) + '</span><b class="num">' + esc(fmt(it.value)) + '</b></div>'; }).join('') +
          '</div></details>';
 }
@@ -1001,6 +1015,16 @@ function renderAccount(){
     };
   });
 }
+
+/* =========================================================================
+   الساعة
+   ========================================================================= */
+function tickClock(){
+  var now = new Date();
+  $('clock-date').textContent = now.toLocaleDateString('ar-EG', { weekday:'long', day:'numeric', month:'short' });
+  $('clock-time').textContent = now.toLocaleTimeString('ar-EG', { hour:'numeric', minute:'2-digit', second:'2-digit' });
+}
+tickClock(); setInterval(tickClock, 1000);
 
 /* =========================================================================
    التشغيل
