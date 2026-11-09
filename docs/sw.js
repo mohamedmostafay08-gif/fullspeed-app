@@ -1,8 +1,8 @@
 // Service worker: بيخلي التطبيق يفتح من غير نت
 // لما تعدّل أي ملف، غيّر رقم النسخة دي عشان المناديب ياخدوا التحديث
-var VERSION = 'fs-v3';
+var VERSION = 'fs-v4';
 var SHELL = ['./', './index.html', './config.js', './manifest.webmanifest',
-  './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './logos/fullspeed.jpg'];
+  './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './logos/fullspeed.jpg', './logos/splash.jpg'];
 
 self.addEventListener('install', function (e) {
   e.waitUntil(caches.open(VERSION).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));

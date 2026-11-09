@@ -93,6 +93,9 @@ select.input{appearance:none}
 /* =================== Splash =================== */
 #splash{position:fixed;inset:0;background:#050a07;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .7s cubic-bezier(.77,0,.175,1)}
 #splash.up{transform:translateY(-100%)}
+#splash .art{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#050a07;opacity:0;transform:scale(1.04);transition:opacity .6s ease,transform 1.6s cubic-bezier(.2,.7,.2,1)}
+#splash.ready .art{opacity:1;transform:none}
+#splash.ready .logo,#splash.ready p{visibility:hidden}
 #splash .logo{width:120px;height:120px;border-radius:50%;padding:4px;background:linear-gradient(135deg,#00E676,#00A651);box-shadow:0 0 40px rgba(0,230,118,.3);animation:pop .6s cubic-bezier(.175,.885,.32,1.275) both}
 #splash .logo img{width:100%;height:100%;border-radius:50%;object-fit:contain;background:#050a07}
 #splash p{margin-top:20px;color:#F5A623;font-weight:800;font-style:italic;direction:ltr;animation:fade .8s .3s both}
@@ -287,7 +290,8 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
 <body data-layout="wallet">
 
 <div id="splash" hidden>
-  <div class="logo"><img src="https://mohamedmostafay08-gif.github.io/fullspeed-app/logos/fullspeed.jpg" alt="Full Speed"></div>
+  <img class="art" id="splash-art" data-asset="logos/splash.jpg" alt="">
+  <div class="logo"><img data-asset="logos/fullspeed.jpg" alt="Full Speed"></div>
   <p>Not just faster, Smarter.</p>
 </div>
 
@@ -303,7 +307,7 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
     <!-- ============ الرئيسية ============ -->
     <section id="view-home" class="view">
       <div class="brand-hero">
-        <div class="brand-logo"><img src="https://mohamedmostafay08-gif.github.io/fullspeed-app/logos/fullspeed.jpg" alt="Full Speed"></div>
+        <div class="brand-logo"><img data-asset="logos/fullspeed.jpg" alt="Full Speed"></div>
         <h1>Full Speed <span>Payroll Hub</span></h1>
         <p class="tagline">Full Speed – Not Just Faster. Smarter.</p>
         <p class="greet"><span id="greet">أهلاً بيك</span> اختار شركتك وشوف مرتبك</p>
@@ -435,7 +439,9 @@ body[data-layout="fast"] .actions .ghost{min-height:52px}
    البيانات الثابتة
    ========================================================================= */
 // اللوجوهات متخزنة مع التطبيق على GitHub Pages (آيفون بيمنع صور Google Drive)
-var ASSET_BASE = (typeof google !== 'undefined' && google.script) ? 'https://mohamedmostafay08-gif.github.io/fullspeed-app/' : '';
+var SITE_URL = 'https://mohamedmostafay08-gif.github.io/fullspeed-app/';   // ← رابط التطبيق (لو اتغير، غيّره هنا بس)
+var ASSET_BASE = (typeof google !== 'undefined' && google.script) ? SITE_URL : '';
+document.querySelectorAll('img[data-asset]').forEach(function(i){ i.src = ASSET_BASE + i.getAttribute('data-asset'); });
 var COMPANIES = [
   { id:'talabat', name:'Talabat', sheetName:'Talabat', logo:'14PU-JRloV8TUBceheEjbv6BJbMlnCAn1', brandColor:'#ff5a00' },
   { id:'amazon', name:'Amazon Now', sheetName:'Amazon now', logo:'1tH0hqDpJnbmBiihabxupQwf-r0Ax-pZC', brandColor:'#ff9900' },
@@ -493,7 +499,7 @@ function hideToast(){ $('toast').hidden = true; }
 
 // جوه Apps Script بنستخدم google.script.run ، وفي التطبيق المستقل بنكلم doPost
 var API_URL = window.FS_API_URL || '';
-var APP_URL = 'https://mohamedmostafay08-gif.github.io/fullspeed-app/';   // رابط التطبيق على GitHub Pages
+var APP_URL = SITE_URL;
 var IS_GAS = typeof google !== 'undefined' && !!(google.script && google.script.run);
 var IS_APP = !IS_GAS && !!API_URL;
 
@@ -1068,9 +1074,12 @@ tickClock(); setInterval(tickClock, 1000);
 
   var seen = false; try { seen = sessionStorage.getItem('fs_splash') === '1'; sessionStorage.setItem('fs_splash','1'); } catch(e){}
   if (seen || reducedMotion()) { renderHome(false); show('home'); return; }
-  var sp = $('splash'); sp.hidden = false;
+  var sp = $('splash'), art = $('splash-art'), done = false; sp.hidden = false;
   show('home'); renderHome(false); $('co-grid').innerHTML = '';
-  setTimeout(function(){ sp.classList.add('up'); renderHome(true); setTimeout(function(){ sp.remove(); }, 750); }, 900);
+  function lift(){ if (done) return; done = true; sp.classList.add('up'); renderHome(true); setTimeout(function(){ sp.remove(); }, 750); }
+  function reveal(){ sp.classList.add('ready'); setTimeout(lift, 1700); }
+  if (art.complete && art.naturalWidth) reveal(); else { art.onload = reveal; art.onerror = function(){ setTimeout(lift, 900); }; }
+  setTimeout(lift, 3500);   // لو الصورة اتأخرت منستناش أكتر من كده
 })();
 </script>
 </body>
