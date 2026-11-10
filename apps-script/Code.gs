@@ -103,7 +103,7 @@ function setupDatabase() {
 // والمندوب ممكن يكتبه 01149008444 أو +201149008444 أو بمسافات، فكلهم بيبقوا 1149008444
 function canonId_(v) {
   if (v === null || v === undefined) return "";
-  var s = String(v).trim();
+  var s = String(v).trim().toUpperCase();
   var digits = s.replace(/[\s\-+()]/g, "");
   if (/^\d+$/.test(digits)) {
     var m = digits.match(/^(?:0020|20)?0?(1\d{9})$/);   // موبايل مصري
@@ -111,6 +111,29 @@ function canonId_(v) {
     return digits;
   }
   return s;
+}
+
+// أعمدة الدخول (كود المندوب / الموبايل). لازم الاسم يكون مطابق عشان "كود الفرع" مثلًا متتحسبش
+var ID_HEADER_RE_ = /^(الكود|كود|كود الطيار|كود المندوب|كود الموظف|id|rider id|rider_id|employee id|phone|mobile|phone number|رقم الهاتف|رقم الهاتف الشخصي|رقم الموبايل|الموبايل|الهاتف|رقم التليفون|التليفون)$/;
+var ID_EXCLUDE_RE_ = /فرع|branch|order|اوردر|مشرف|supervisor|طلب|شركه|company/;
+function idCols_(headers) {
+  var out = [];
+  headers.forEach(function (h, i) { if (ID_HEADER_RE_.test(norm_(h))) out.push(i); });
+  if (!out.length) headers.forEach(function (h, i) {
+    var x = norm_(h);
+    if (!ID_EXCLUDE_RE_.test(x) && /كود|\bid\b|phone|الهاتف|الموبايل/.test(x)) out.push(i);
+  });
+  if (!out.length) out.push(0);
+  return out;
+}
+// المفتاح الأساسي للمندوب في الصف ده: أول عمود دخول فيه قيمة (الكود قبل الموبايل لو الاتنين موجودين)
+function rowKey_(row, cols) {
+  for (var i = 0; i < cols.length; i++) { var k = canonId_(row[cols[i]]); if (k) return k; }
+  return "";
+}
+function rowMatches_(row, cols, id) {
+  for (var i = 0; i < cols.length; i++) if (canonId_(row[cols[i]]) === id) return true;
+  return false;
 }
 
 function norm_(t) {
@@ -238,13 +261,9 @@ function findRider_(ss, companyName, riderId) {
     var data = readSheet_(list[i]);
     if (!data) continue;
     if (data.length <= 1) continue;
-    var idCol = data[0].findIndex(function (h) {
-      var x = norm_(h);
-      return x.indexOf("id") !== -1 || x.indexOf("كود") !== -1 || x.indexOf("phone") !== -1 || x.indexOf("الهاتف") !== -1 || x.indexOf("رقم") !== -1;
-    });
-    if (idCol === -1) idCol = 0;
+    var cols = idCols_(data[0]);
     for (var r = 1; r < data.length; r++) {
-      if (data[r][idCol] != null && canonId_(data[r][idCol]) === riderId) return list[i];
+      if (rowMatches_(data[r], cols, riderId)) return { sheet: list[i], key: rowKey_(data[r], cols) || riderId };
     }
   }
   return null;
@@ -305,8 +324,11 @@ function checkSalaryCore_(companyName, riderId, password, confirmNew) {
     if (tooManyFails_(id)) return fail_("محاولات غلط كتير. استنى 10 دقايق وجرب تاني.");
 
     var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var sheetName = findRider_(ss, companyName, id);
-    if (!sheetName) return fail_("الكود ده مش متسجل في بيانات " + companyName + " لحد دلوقتي. اتأكد منه أو كلم المشرف.");
+    var found = findRider_(ss, companyName, id);
+    if (!found) return fail_("الكود ده مش متسجل في بيانات " + companyName + " لحد دلوقتي. اتأكد منه أو كلم المشرف.");
+    var sheetName = found.sheet;
+    id = found.key;   // لو دخل بالموبايل والشيت فيه كود، الحساب بيتسجل على الكود (حساب واحد للاتنين)
+    if (tooManyFails_(id)) return fail_("محاولات غلط كتير. استنى 10 دقايق وجرب تاني.");
 
     var lock = LockService.getScriptLock();
     try { lock.waitLock(10000); } catch (e) { return fail_("السيرفر عليه ضغط دلوقتي، جرب كمان شوية."); }
@@ -387,8 +409,9 @@ function loginWithTokenCore_(companyName, riderId, token) {
     if (!ok) return fail_("الجلسة خلصت. ادخل بالرقم السري تاني.", { expired: true });
 
     // نون مينتس بس اللي ليها أكتر من شيت، فمحتاجة ندوّر المندوب في أنهي واحد
-    var sheetName = sheetsFor_(companyName).length > 1 && companyName.toLowerCase() !== "talabat"
-      ? findRider_(ss, companyName, id) : companyName;
+    var hit = sheetsFor_(companyName).length > 1 && companyName.toLowerCase() !== "talabat"
+      ? findRider_(ss, companyName, id) : { sheet: companyName };
+    var sheetName = hit && hit.sheet;
     if (!sheetName) return fail_("الكود ده مش متسجل في بيانات " + companyName + " دلوقتي.");
     var data = buildPayload_(companyName, sheetName, id);
     if (!data) return fail_("مفيش تفاصيل مرتب متسجلة لحسابك دلوقتي.");
@@ -528,40 +551,56 @@ function getGenericCompanyData_(sheetName, riderId) {
     return -1;
   }
 
-  var colId = findCol(["كود الطيار", "كود المندوب", "كود", "ID", "rider id", "Phone", "رقم الهاتف الشخصي", "رقم الهاتف", "رقم الموبايل"]);
-  if (colId === -1) colId = 0;
+  // عمود بالاسم بالظبط أو بيبدأ بيه (عشان "عمولة الشهر" متتحسبش عمود الشهر)
+  function findColExact(names) {
+    for (var i = 0; i < headers.length; i++) {
+      var h = norm_(headers[i]);
+      for (var j = 0; j < names.length; j++) { var n = norm_(names[j]); if (h === n || h.indexOf(n + " ") === 0) return i; }
+    }
+    return -1;
+  }
+  var idCols = idCols_(headers);
   var colName = findCol(["اسم الطيار", "اسم المندوب", "الاسم", "Name", "الاسـم"]);
   if (colName === -1 && headers.length > 1) colName = 1;
   var colVehicle = findCol(["نوع المركبة", "المركبة", "Vehicle", "المعده"]);
-  var colComp = findCol(["اسم الشركة", "الشركة", "الفرع"]);
-  var colWeek = findCol(["الاسبوع", "الأسبوع", "الفترة", "الشهر"]);
+  var colComp = findColExact(["اسم الشركة", "الشركة", "الفرع", "كود الفرع"]);
+  var colWeek = findColExact(["الاسبوع", "الأسبوع", "الفترة", "الشهر", "Week"]);
   var colWallet = findCol(["صافي القبض الظاهر على محفظة الطيار", "صافي المحفظة", "صافي القبض", "صافي الراتب", "صافي الراتب المستحق"]);
   var colNet = findCol(["الصافي", "المبلغ المستحق", "صافي الراتب"]);
 
-  var weeks = [], riderName = "-", vehicle = "";
+  var weeks = [], riderName = "-", vehicle = "", branch = "";
+  // عناوين الأعمدة المتكررة (زي "الراتب" مرتين) بتاخد رقم عشان تتفرق
+  var titles = [], seenT = {};
+  headers.forEach(function (h) {
+    var t = h ? h.toString().trim() : "";
+    if (t) { seenT[t] = (seenT[t] || 0) + 1; if (seenT[t] > 1) t += " (" + seenT[t] + ")"; }
+    titles.push(t);
+  });
   var id = canonId_(riderId);
 
   for (var r = 1; r < data.length; r++) {
-    if (data[r][colId] == null || canonId_(data[r][colId]) !== id) continue;
+    if (!rowMatches_(data[r], idCols, id)) continue;
     if (colName !== -1 && data[r][colName]) riderName = String(clean_(data[r][colName])).trim();
     if (colVehicle !== -1 && data[r][colVehicle]) vehicle = String(clean_(data[r][colVehicle])).trim();
+    if (colComp !== -1 && data[r][colComp]) branch = String(clean_(data[r][colComp])).trim();
 
     var week = colWeek !== -1 ? String(clean_(data[r][colWeek])).trim() : "";
-    var total = "0", top = week ? "الأسبوع: " + week : "صافي المستحقات", sub = "إجمالي الراتب المستحق", usedCol = -1;
+    var total = "0", top = week ? "الأسبوع: " + week : "صافي المستحقات", sub = "صافي المستحقات", usedCol = -1;
 
     if (colWallet !== -1 && String(clean_(data[r][colWallet])).trim() !== "") {
       total = data[r][colWallet]; usedCol = colWallet;
-      sub = /محفظ/.test(String(headers[colWallet])) ? "صافي القبض الظاهر على المحفظة" : String(headers[colWallet]).trim();
+      // جملة المحفظة لطلبات بس، الباقي بياخد اسم العمود نفسه
+      sub = sheetName === "Talabat" ? "صافي القبض الظاهر على المحفظة" : String(headers[colWallet]).trim();
     } else if (colNet !== -1 && String(clean_(data[r][colNet])).trim() !== "") {
-      total = data[r][colNet]; usedCol = colNet;
+      total = data[r][colNet]; usedCol = colNet; sub = String(headers[colNet]).trim();
     } else {
       total = data[r][headers.length - 1];
     }
 
-    var details = [], skip = [colId, colName, colVehicle, colWeek, colComp];
+    var details = [], skip = idCols.concat([colName, colVehicle, colWeek, colComp]);
     if (usedCol !== -1) skip.push(usedCol);
     for (var c = 0; c < headers.length; c++) {
-      var title = headers[c] ? headers[c].toString().trim() : "";
+      var title = titles[c];
       if (skip.indexOf(c) !== -1 || !title) continue;
       var val = clean_(data[r][c]);
       if (val.toString().trim() === "") val = "-";
@@ -579,5 +618,5 @@ function getGenericCompanyData_(sheetName, riderId) {
     });
   }
   if (!weeks.length) return null;
-  return { rider_name: riderName, vehicle_type: vehicle, weeks: weeks };
+  return { rider_name: riderName, vehicle_type: vehicle, branch: branch, weeks: weeks };
 }

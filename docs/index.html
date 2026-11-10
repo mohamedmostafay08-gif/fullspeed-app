@@ -791,7 +791,7 @@ function normalize(d){
     return { name:b.name, vehicle:b.vehicle, city:b.city, sp:b.sp, weeks:d.salaries || [],
              extras:{ canceled:d.canceled || {}, compensations:d.compensations || {}, deductions:d.deductions || {} } };
   }
-  return { name:d.rider_name, vehicle:d.vehicle_type, weeks:d.weeks || [], extras:null };
+  return { name:d.rider_name, vehicle:d.vehicle_type, city:d.branch, weeks:d.weeks || [], extras:null };
 }
 // تحديث هادي بعد ما النسخة المحفوظة اتعرضت: بنحافظ على الأسبوع والقسم المفتوحين
 function refreshData(raw){
@@ -818,10 +818,13 @@ function countObj(o){ var n = 0; for (var k in o) n += (o[k] || []).length; retu
 
 // تصنيف بنود المرتب حسب عنوان العمود
 function kindOf(t){
-  t = String(t || '');
+  t = String(t || '').trim().replace(/ة/g, 'ه').replace(/[أإآ]/g, 'ا');
+  // عدد أيام / ساعات / أسعار الوحدة: معلومات مش فلوس
+  if (/^(ايام|الايام|حضور|الحضور|الاجاز|اجاز|الغياب|غياب|عدد|قيمه اليوم|قيمه الساعه|ثابت يومي|الوظيف|الفرع|كود)|باليوم$|بالساعه$/.test(t)) return 'info';
   if (/تعويض/.test(t)) return 'plus';
+  if (/تم التحويل|مسبقا|مدفوع مقدم|تحصيل/.test(t)) return 'minus';
   if (/خصم|جزاء|عجز|كانسل على|سلف|غرام|مخالف|استقطاع|تأمين|تامين|مديوني|مديون/.test(t)) return 'minus';
-  if (/مستحق|بونص|بوانص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus|اجمالى الراتب|إجمالي الراتب|اجمالي الراتب|grand total|^total$/i.test(t)) return 'plus';
+  if (/مستحق|بونص|بوانص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus|اجمالى الراتب|اجمالي الراتب|grand total|^total$|^قيمه|^مجموع|اوفر|^الراتب|^راتب|التنقل|الانتقال|الوجبه/i.test(t)) return 'plus';
   return 'info';
 }
 // عمود عنوانه تاريخ (زي شيت أمازون: 10/25/2026) = يومية
