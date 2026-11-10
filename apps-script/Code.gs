@@ -104,7 +104,7 @@ function setupDatabase() {
 function canonId_(v) {
   if (v === null || v === undefined) return "";
   var s = String(v).trim().toUpperCase();
-  var digits = s.replace(/[\s\-+()]/g, "");
+  var digits = s.replace(/[\s\-+(),]/g, "");
   if (/^\d+$/.test(digits)) {
     var m = digits.match(/^(?:0020|20)?0?(1\d{9})$/);   // موبايل مصري
     if (m) return m[1];
@@ -163,7 +163,7 @@ function readSheet_(name) {
 
 function readSheetCached_(name) {
   var cache = CacheService.getScriptCache();
-  var key = 'sh_' + cacheVer_() + '_' + Utilities.base64EncodeWebSafe(name);
+  var key = 'sh2_' + cacheVer_() + '_' + Utilities.base64EncodeWebSafe(name);
   try {
     var n = Number(cache.get(key) || 0);
     if (n > 0) {
@@ -180,9 +180,8 @@ function readSheetCached_(name) {
 
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
   if (!sheet) return null;
-  var data = sheet.getDataRange().getValues().map(function (row) {
-    return row.map(function (v) { return v instanceof Date ? clean_(v) : v; });
-  });
+  // القيم زي ما هي ظاهرة في الشيت (58% بدل 0.58، و 1,000.00 بنفس التنسيق)
+  var data = sheet.getDataRange().getDisplayValues();
   try {
     var s = JSON.stringify(data);
     var count = Math.max(1, Math.ceil(s.length / CACHE_CHUNK));
@@ -272,7 +271,7 @@ function findRider_(ss, companyName, riderId) {
 // نفس المندوب لو فتح تاني خلال 5 دقايق بياخد الرد جاهز
 function buildPayload_(companyName, sheetName, riderId) {
   var cache = CacheService.getScriptCache();
-  var key = 'pl_' + cacheVer_() + '_' + Utilities.base64EncodeWebSafe(companyName + '|' + sheetName + '|' + riderId);
+  var key = 'pl2_' + cacheVer_() + '_' + Utilities.base64EncodeWebSafe(companyName + '|' + sheetName + '|' + riderId);
   try { var hit = cache.get(key); if (hit) return JSON.parse(hit); } catch (e) {}
   var data = buildPayloadFresh_(companyName, sheetName, riderId);
   if (data) { try { var j = JSON.stringify(data); if (j.length < 90000) cache.put(key, j, CACHE_SECONDS); } catch (e) {} }
@@ -580,7 +579,7 @@ function getGenericCompanyData_(sheetName, riderId) {
 
   for (var r = 1; r < data.length; r++) {
     if (!rowMatches_(data[r], idCols, id)) continue;
-    if (colName !== -1 && data[r][colName]) riderName = String(clean_(data[r][colName])).trim();
+    if (colName !== -1 && data[r][colName]) riderName = String(clean_(data[r][colName])).replace(/\s*[-–_]+\s*full\s*speed.*$/i, "").trim() || riderName;
     if (colVehicle !== -1 && data[r][colVehicle]) vehicle = String(clean_(data[r][colVehicle])).trim();
     if (colComp !== -1 && data[r][colComp]) branch = String(clean_(data[r][colComp])).trim();
 
@@ -598,6 +597,7 @@ function getGenericCompanyData_(sheetName, riderId) {
     }
 
     var details = [], skip = idCols.concat([colName, colVehicle, colWeek, colComp]);
+    headers.forEach(function (h, i) { if (/^(vendor|المورد|الشركه الموردة)$/i.test(norm_(h))) skip.push(i); });
     if (usedCol !== -1) skip.push(usedCol);
     for (var c = 0; c < headers.length; c++) {
       var title = titles[c];
