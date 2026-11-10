@@ -206,6 +206,7 @@ body[data-layout="slip"] .hero-note,body[data-layout="fast"] .hero-note{backgrou
 .grp[open] summary::after{transform:rotate(180deg)}
 .grp summary .ttl{flex:1;display:flex;align-items:center;gap:8px}
 .grp-plus summary .tot{color:var(--plus)} .grp-minus summary .tot{color:var(--minus)}
+.grp-day{border-inline-start:4px solid var(--info)}
 .grp-plus{border-inline-start:4px solid var(--plus)} .grp-minus{border-inline-start:4px solid var(--minus)} .grp-info{border-inline-start:4px solid var(--ink-3)}
 .rows{display:flex;flex-direction:column;border-top:1px solid var(--line)}
 .r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--line);font-size:14px}
@@ -820,17 +821,28 @@ function kindOf(t){
   t = String(t || '');
   if (/تعويض/.test(t)) return 'plus';
   if (/خصم|جزاء|عجز|كانسل على|سلف|غرام|مخالف|استقطاع|تأمين|تامين|مديوني|مديون/.test(t)) return 'minus';
-  if (/مستحق|بونص|بوانص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus|اجمالى الراتب|إجمالي الراتب|اجمالي الراتب/i.test(t)) return 'plus';
+  if (/مستحق|بونص|بوانص|حافز|مكاف|اساسي|أساسي|إضاف|اضاف|بدل|عمول|إكرامي|اكرامي|تيبس|tips|bonus|اجمالى الراتب|إجمالي الراتب|اجمالي الراتب|grand total|^total$/i.test(t)) return 'plus';
   return 'info';
 }
+// عمود عنوانه تاريخ (زي شيت أمازون: 10/25/2026) = يومية
+function dayOf(t){
+  t = String(t || '').trim(); var m, d = null;
+  if ((m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/))) d = new Date(+m[1], +m[2] - 1, +m[3]);
+  else if ((m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) d = new Date(+m[3], +m[1] - 1, +m[2]);
+  if (!d || isNaN(d)) return null;
+  return d.toLocaleDateString('ar-EG', { weekday:'long', day:'numeric', month:'long' });
+}
+function fmtId(id){ id = String(id || ''); return /^1\d{9}$/.test(id) ? '0' + id : id; }
 // بنشيل البنود الفاضية (-) والأعمدة المتكررة في الشيت بنفس القيمة
 function groupDetails(items){
-  var g = { plus:{ items:[] }, minus:{ items:[] }, info:{ items:[] } }, seen = {};
+  var g = { plus:{ items:[] }, minus:{ items:[] }, day:{ items:[] }, info:{ items:[] } }, seen = {};
   items.forEach(function(it){
     var v = String(it.value == null ? '' : it.value).trim();
     if (v === '' || v === '-') return;
     var key = String(it.title).trim() + '|' + v;
     if (seen[key]) return; seen[key] = 1;
+    var day = dayOf(it.title);
+    if (day) { g.day.items.push({ title:day, value:it.value }); return; }
     g[kindOf(it.title)].items.push(it);
   });
   return g;
@@ -842,7 +854,7 @@ function renderSalary(){
   $('salary-empty').hidden = true; box.hidden = false;
   var c = S.company, d = S.data;
   var h = '<div class="sal-head"><img src="' + esc(c.logo) + '" alt=""><div class="who"><b>' + esc(d.name || '-') + '</b>' +
-          '<span class="meta"><span class="num">ID ' + esc(S.riderId) + '</span> · ' + esc(d.vehicle || '-') + (d.city && d.city !== '-' ? ' · ' + esc(d.city) : '') + '</span>' + (S.syncing ? '<span class="sync">بنحدّث…</span>' : '') + '</div>' +
+          '<span class="meta"><span class="num">ID ' + esc(fmtId(S.riderId)) + '</span>' + [d.vehicle, d.city].filter(function(x){ return x && x !== '-'; }).map(function(x){ return ' · ' + esc(x); }).join('') + '</span>' + (S.syncing ? '<span class="sync">بنحدّث…</span>' : '') + '</div>' +
           '<button class="ghost sm" id="btn-logout">خروج</button></div>';
   if (S.offlineAt) h += '<div class="offline" role="status">📡 <span>مفيش نت. دي آخر بيانات اتحفظت ' + esc(ago(S.offlineAt)) + '.</span><button class="ghost sm" id="btn-retry">حدّث</button></div>';
   if (d.extras) {
@@ -861,7 +873,7 @@ function renderSalary(){
 }
 
 function capStrip(){
-  return '<div class="cap-strip"><span>' + esc(S.company.name) + ' · ' + esc(S.data.name || '-') + '</span><span class="num">ID ' + esc(S.riderId) + '</span></div>';
+  return '<div class="cap-strip"><span>' + esc(S.company.name) + ' · ' + esc(S.data.name || '-') + '</span><span class="num">ID ' + esc(fmtId(S.riderId)) + '</span></div>';
 }
 var CAP_FOOT = '<div class="cap-foot">Full Speed Payroll Hub • مستند إلكتروني</div>';
 function actionsHTML(pdf){
@@ -895,7 +907,7 @@ function salaryHTML(){
   var hero = '<div class="hero"><div class="hero-top">' + esc(w.top_title || 'صافي المستحقات') + '</div>' +
              '<div class="hero-amt num">' + esc(fmt(w.final_total)) + ' <small>EGP</small></div>' +
              '<div class="hero-sub">' + esc(w.sub_title || '') + '</div>' + split + '</div>';
-  var groups = grpHTML('plus', 'المستحقات', g.plus, open) + grpHTML('minus', 'الخصومات', g.minus, open) + grpHTML('info', 'تفاصيل الشغل', g.info, open && !g.plus.items.length);
+  var groups = grpHTML('plus', 'المستحقات', g.plus, open) + grpHTML('minus', 'الخصومات', g.minus, open) + grpHTML('day', 'أيام الأسبوع', g.day, open) + grpHTML('info', 'تفاصيل الشغل', g.info, open && !g.plus.items.length);
   return chips + '<div id="capture">' + capStrip() + hero + groups + CAP_FOOT + '</div>' + actionsHTML(true);
 }
 function grpHTML(key, title, g, open){
@@ -995,13 +1007,13 @@ async function downloadPDF(){
       '</div>' +
       '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;justify-content:space-between;text-align:center">' +
         '<div><div style="font-size:11px;font-weight:700;color:#6b7280">المندوب</div><div style="font-size:15px;font-weight:900">' + esc(S.data.name || '-') + '</div></div>' +
-        '<div><div style="font-size:11px;font-weight:700;color:#6b7280">الكود</div><div style="font-size:15px;font-weight:900;color:' + brandTxt + '">' + esc(S.riderId) + '</div></div>' +
+        '<div><div style="font-size:11px;font-weight:700;color:#6b7280">الكود</div><div style="font-size:15px;font-weight:900;color:' + brandTxt + '">' + esc(fmtId(S.riderId)) + '</div></div>' +
         '<div><div style="font-size:11px;font-weight:700;color:#6b7280">الفترة</div><div style="font-size:14px;font-weight:900;color:' + brandTxt + '">' + esc(w.week_label) + '</div></div>' +
       '</div>' +
       '<div style="background:' + brand + ';border-radius:14px;padding:18px;text-align:center;color:' + onB + ';margin-bottom:20px"><div style="font-size:14px;font-weight:700">' + esc(w.top_title) + '</div><div style="font-size:42px;font-weight:900;direction:ltr">' + esc(fmt(w.final_total)) + ' <span style="font-size:17px">EGP</span></div><div style="font-size:12px;font-weight:700">' + esc(w.sub_title || '') + '</div></div>' +
       '<table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb">' +
         '<tr style="background:#111827;color:#fff"><th style="padding:10px 14px;font-size:12px;text-align:right">البند</th><th style="padding:10px 14px;font-size:12px;text-align:left">القيمة</th></tr>' +
-        rows('المستحقات', g.plus, '#047a3c') + rows('الخصومات', g.minus, '#c62828') + rows('تفاصيل الشغل', g.info, '#111827') +
+        rows('المستحقات', g.plus, '#047a3c') + rows('الخصومات', g.minus, '#c62828') + rows('أيام الأسبوع', g.day, '#111827') + rows('تفاصيل الشغل', g.info, '#111827') +
       '</table>' +
     '</div>';
   document.body.appendChild(box);
@@ -1067,7 +1079,7 @@ function renderAccount(){
   var rows = COMPANIES.filter(function(c){ return store.get('fs_sess_' + c.id); });
   $('sessions').innerHTML = rows.length ? rows.map(function(c){
     var s = store.get('fs_sess_' + c.id);
-    return '<div class="list-row"><img src="' + esc(c.logo) + '" alt=""><div class="t"><b>' + esc(c.name) + '</b><div class="small num" style="text-align:right">ID ' + esc(s.id) + '</div></div><button class="ghost sm" data-out="' + c.id + '">خروج</button></div>';
+    return '<div class="list-row"><img src="' + esc(c.logo) + '" alt=""><div class="t"><b>' + esc(c.name) + '</b><div class="small num" style="text-align:right">ID ' + esc(fmtId(s.id)) + '</div></div><button class="ghost sm" data-out="' + c.id + '">خروج</button></div>';
   }).join('') : '<p class="small" style="margin:6px 0 0">مفيش حسابات محفوظة. لما تدخل وتعلّم على «افتكرني» هيظهر هنا.</p>';
   $('sessions').querySelectorAll('[data-out]').forEach(function(b){
     b.onclick = function(){

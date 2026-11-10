@@ -99,6 +99,20 @@ function setupDatabase() {
 // =========================================================================
 // أدوات مساعدة (خاصة بالسيرفر)
 // =========================================================================
+// الكود أو رقم الموبايل بشكل موحّد: الشيت بيخزن الموبايل رقم من غير الصفر (1149008444)
+// والمندوب ممكن يكتبه 01149008444 أو +201149008444 أو بمسافات، فكلهم بيبقوا 1149008444
+function canonId_(v) {
+  if (v === null || v === undefined) return "";
+  var s = String(v).trim();
+  var digits = s.replace(/[\s\-+()]/g, "");
+  if (/^\d+$/.test(digits)) {
+    var m = digits.match(/^(?:0020|20)?0?(1\d{9})$/);   // موبايل مصري
+    if (m) return m[1];
+    return digits;
+  }
+  return s;
+}
+
 function norm_(t) {
   return t ? t.toString().replace(/ة/g, 'ه').replace(/[أإآ]/g, 'ا').trim().toLowerCase() : "";
 }
@@ -230,7 +244,7 @@ function findRider_(ss, companyName, riderId) {
     });
     if (idCol === -1) idCol = 0;
     for (var r = 1; r < data.length; r++) {
-      if (data[r][idCol] != null && data[r][idCol].toString().trim() === riderId) return list[i];
+      if (data[r][idCol] != null && canonId_(data[r][idCol]) === riderId) return list[i];
     }
   }
   return null;
@@ -284,7 +298,7 @@ function checkSalary(companyName, riderId, password, confirmNew) {
 
 function checkSalaryCore_(companyName, riderId, password, confirmNew) {
   try {
-    var id = riderId ? riderId.toString().trim() : "";
+    var id = canonId_(riderId);
     var pass = password ? password.toString().trim() : "";
     companyName = companyName ? companyName.toString().trim() : "";
     if (!companyName || !id || !pass) return fail_("اكتب الكود والرقم السري.");
@@ -303,7 +317,7 @@ function checkSalaryCore_(companyName, riderId, password, confirmNew) {
       var rows = users.getDataRange().getValues();
       var rowIdx = -1, dup = [];
       for (var u = 1; u < rows.length; u++) {
-        if (rows[u][0] != null && rows[u][0].toString().trim() === id) {
+        if (rows[u][0] != null && canonId_(rows[u][0]) === id) {
           if (rowIdx === -1) rowIdx = u; else dup.push(u + 1);
         }
       }
@@ -352,7 +366,7 @@ function loginWithToken(companyName, riderId, token) {
 
 function loginWithTokenCore_(companyName, riderId, token) {
   try {
-    var id = riderId ? riderId.toString().trim() : "";
+    var id = canonId_(riderId);
     var tok = token ? token.toString().trim() : "";
     if (!id || !tok || !companyName) return fail_("ادخل بالرقم السري.", { expired: true });
 
@@ -360,7 +374,7 @@ function loginWithTokenCore_(companyName, riderId, token) {
     var rows = ss.getSheetByName(USERS_SHEET).getDataRange().getValues();
     var h = hashPassword_(tok), now = Date.now(), ok = false;
     for (var u = 1; u < rows.length; u++) {
-      if (rows[u][0] != null && rows[u][0].toString().trim() === id) {
+      if (rows[u][0] != null && canonId_(rows[u][0]) === id) {
         var reg = rows[u][1] ? rows[u][1].toString().trim().toLowerCase() : "";
         if (reg === companyName.toLowerCase()) {
           ok = String(rows[u][4] || "").split(",").some(function (s) {
@@ -386,7 +400,7 @@ function loginWithTokenCore_(companyName, riderId, token) {
 
 function logout(riderId, token) {
   try {
-    var id = riderId ? riderId.toString().trim() : "";
+    var id = canonId_(riderId);
     if (!id || !token) return { success: true };
     var lock = LockService.getScriptLock();
     lock.waitLock(10000);
@@ -395,7 +409,7 @@ function logout(riderId, token) {
       var rows = users.getDataRange().getValues();
       var h = hashPassword_(token.toString());
       for (var u = 1; u < rows.length; u++) {
-        if (rows[u][0] != null && rows[u][0].toString().trim() === id) {
+        if (rows[u][0] != null && canonId_(rows[u][0]) === id) {
           var left = String(rows[u][4] || "").split(",").filter(function (s) { return s && s.split("|")[0] !== h; });
           users.getRange(u + 1, 5).setValue(left.join(","));
           break;
@@ -412,7 +426,7 @@ function logout(riderId, token) {
 // =========================================================================
 function getTalabatSuperAppData_(riderId) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var id = riderId.toString().trim();
+  var id = canonId_(riderId);
 
   var salary = getGenericCompanyData_("Talabat", id) || { rider_name: "-", vehicle_type: "-", weeks: [] };
   var base = { name: salary.rider_name, city: "-", sp: "-", vehicle: salary.vehicle_type };
@@ -428,7 +442,7 @@ function getTalabatSuperAppData_(riderId) {
     var nameC = find("اسم"), cityC = find("مدين"), spC = find("فتح"), vC = find("مركب");
     if (idC === -1) idC = 0;
     for (var i = 1; i < data.length; i++) {
-      if (data[i][idC] != null && data[i][idC].toString().trim() === id) {
+      if (data[i][idC] != null && canonId_(data[i][idC]) === id) {
         if ((base.name === "-" || base.name === "غير متوفر") && nameC !== -1) base.name = String(clean_(data[i][nameC]) || "-");
         if (base.city === "-" && cityC !== -1) base.city = String(clean_(data[i][cityC]) || "-");
         if (base.sp === "-" && spC !== -1) base.sp = String(clean_(data[i][spC]) || "-");
@@ -463,7 +477,7 @@ function getTalabatSubSheetData_(ss, sheetName, riderId, reqCols) {
 
   var groupCol = reqCols[reqCols.length - 1], grouped = {};
   for (var r = 1; r < data.length; r++) {
-    if (data[r][riderCol] == null || data[r][riderCol].toString().trim() !== riderId) continue;
+    if (data[r][riderCol] == null || canonId_(data[r][riderCol]) !== riderId) continue;
     var g = colMap[groupCol] !== -1 ? String(clean_(data[r][colMap[groupCol]])).trim() : "";
     if (!g) g = "أخرى";
     if (!grouped[g]) grouped[g] = [];
@@ -525,10 +539,10 @@ function getGenericCompanyData_(sheetName, riderId) {
   var colNet = findCol(["الصافي", "المبلغ المستحق", "صافي الراتب"]);
 
   var weeks = [], riderName = "-", vehicle = "";
-  var id = riderId.toString().trim();
+  var id = canonId_(riderId);
 
   for (var r = 1; r < data.length; r++) {
-    if (data[r][colId] == null || data[r][colId].toString().trim() !== id) continue;
+    if (data[r][colId] == null || canonId_(data[r][colId]) !== id) continue;
     if (colName !== -1 && data[r][colName]) riderName = String(clean_(data[r][colName])).trim();
     if (colVehicle !== -1 && data[r][colVehicle]) vehicle = String(clean_(data[r][colVehicle])).trim();
 
@@ -536,7 +550,8 @@ function getGenericCompanyData_(sheetName, riderId) {
     var total = "0", top = week ? "الأسبوع: " + week : "صافي المستحقات", sub = "إجمالي الراتب المستحق", usedCol = -1;
 
     if (colWallet !== -1 && String(clean_(data[r][colWallet])).trim() !== "") {
-      total = data[r][colWallet]; sub = "صافي القبض الظاهر على المحفظة"; usedCol = colWallet;
+      total = data[r][colWallet]; usedCol = colWallet;
+      sub = /محفظ/.test(String(headers[colWallet])) ? "صافي القبض الظاهر على المحفظة" : String(headers[colWallet]).trim();
     } else if (colNet !== -1 && String(clean_(data[r][colNet])).trim() !== "") {
       total = data[r][colNet]; usedCol = colNet;
     } else {
@@ -564,5 +579,5 @@ function getGenericCompanyData_(sheetName, riderId) {
     });
   }
   if (!weeks.length) return null;
-  return { rider_name: riderName, vehicle_type: vehicle || sheetName, weeks: weeks };
+  return { rider_name: riderName, vehicle_type: vehicle, weeks: weeks };
 }
