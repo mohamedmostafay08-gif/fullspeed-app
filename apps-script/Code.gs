@@ -462,6 +462,7 @@ function getTalabatSuperAppData_(riderId) {
     var find = function (word) { return h.findIndex(function (x) { return norm_(x).indexOf(word) !== -1; }); };
     var idC = h.findIndex(function (x) { var n = norm_(x); return n.indexOf("كود") !== -1 || n.indexOf("id") !== -1; });
     var nameC = find("اسم"), cityC = find("مدين"), spC = find("فتح"), vC = find("مركب");
+    if (vC === -1) vC = find("المعد");
     if (idC === -1) idC = 0;
     for (var i = 1; i < data.length; i++) {
       if (data[i][idC] != null && canonId_(data[i][idC]) === id) {
@@ -605,9 +606,11 @@ function getGenericCompanyData_(sheetName, riderId) {
     if (isTalabat) {
       if (week === "-") week = "";
       extraSkip = [tWallet, tMonthly, tMonthName];
+      headers.forEach(function (h, i) { if (/^(المدينه|نقطه الفتح|المعده|اسم الشركه|الشركه)$/.test(norm_(h))) extraSkip.push(i); });
       if (week && cell_(r, tWallet) !== "") {
-        total = data[r][tWallet]; top = "الأسبوع: " + week; sub = "صافي القبض الظاهر على المحفظة";
-        label = "الأسبوع " + week;
+        total = data[r][tWallet]; sub = "صافي القبض الظاهر على المحفظة";
+        // الأسبوع زي ما هو مكتوب في التاب بالظبط (مثلًا "اول")
+        top = String(headers[colWeek]).trim() + ": " + week; label = week;
       } else if (!week && cell_(r, tMonthly) !== "") {
         var mName = cell_(r, tMonthName);
         total = data[r][tMonthly]; sub = "صافي المرتب";
@@ -618,8 +621,8 @@ function getGenericCompanyData_(sheetName, riderId) {
         var alt = week ? tMonthly : tWallet;
         total = cell_(r, alt) !== "" ? data[r][alt] : 0;
         sub = week ? "صافي المرتب" : "صافي القبض الظاهر على المحفظة";
-        top = week ? "الأسبوع: " + week : "المرتب الشهري";
-        label = week ? "الأسبوع " + week : "المرتب الشهري";
+        top = week ? String(headers[colWeek]).trim() + ": " + week : "المرتب الشهري";
+        label = week ? week : "المرتب الشهري";
       }
     } else if (colWallet !== -1 && String(clean_(data[r][colWallet])).trim() !== "") {
       total = data[r][colWallet]; usedCol = colWallet;

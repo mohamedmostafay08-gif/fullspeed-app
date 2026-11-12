@@ -1,6 +1,6 @@
 // Service worker: بيخلي التطبيق يفتح من غير نت
 // لما تعدّل أي ملف، غيّر رقم النسخة دي عشان المناديب ياخدوا التحديث
-var VERSION = 'fs-v9';
+var VERSION = 'fs-v10';
 var SHELL = ['./', './index.html', './config.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './logos/fullspeed.jpg'];
 
