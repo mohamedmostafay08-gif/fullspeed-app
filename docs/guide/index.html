@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>تطبيق مرتبات Full Speed: دليل الاستخدام</title>
+<meta name="description" content="مرتبك وكل تفاصيله على موبايلك في أي وقت. اتعرف على التطبيق وازاي تبدأ في دقيقة.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Full Speed Payroll App">
+<meta property="og:title" content="تطبيق مرتبات Full Speed 💚 مرتبك في جيبك، في أي وقت">
+<meta property="og:description" content="اتعرف على التطبيق وازاي تبدأ في 3 خطوات. اسحب واتفرج على الشرح.">
+<meta property="og:image" content="https://mohamedmostafay08-gif.github.io/fullspeed-app/guide/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://mohamedmostafay08-gif.github.io/fullspeed-app/guide/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#080d0a">
+<link rel="icon" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080d0a; --surface:#111813; --line:rgba(255,255,255,.09);
+  --ink:#eef4ef; --ink-2:#b7c4bc; --ink-3:#86938b;
+  --green:#00a651; --green-hi:#00e676; --gold:#f5a623;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Cairo',Tahoma,system-ui,sans-serif;-webkit-text-size-adjust:100%}
+body{display:flex;flex-direction:column;min-height:100dvh;overflow:hidden}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--green-hi);outline-offset:2px}
+
+.top{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) max(14px,env(safe-area-inset-right,0px)) 10px max(14px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.top img{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--green);object-fit:cover;background:#050a07}
+.top .t{flex:1;min-width:0;line-height:1.25}
+.top b{display:block;font-size:15px;font-weight:800}
+.top small{font-size:12px;color:var(--ink-3)}
+.count{font-size:13px;font-weight:800;color:var(--green-hi);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:4px 12px;font-variant-numeric:tabular-nums;direction:ltr}
+
+.track{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.track::-webkit-scrollbar{display:none}
+.slide{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px max(14px,env(safe-area-inset-right,0px)) 16px max(14px,env(safe-area-inset-left,0px))}
+.frame{width:100%;max-width:1100px;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#0d1410;box-shadow:0 14px 40px rgba(0,0,0,.45),0 0 0 1px var(--line)}
+.frame img{width:100%;height:100%;display:block;object-fit:contain}
+.cap{width:100%;max-width:1100px;font-size:16.5px;line-height:1.75;color:var(--ink-2);text-align:right;margin:0}
+.cap b{color:var(--ink)}
+.hint{font-size:12.5px;color:var(--ink-3);display:flex;align-items:center;gap:6px}
+
+.bottom{flex-shrink:0;display:flex;flex-direction:column;gap:10px;padding:10px max(14px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-left,0px));border-top:1px solid var(--line);background:var(--bg)}
+.nav{display:flex;align-items:center;gap:10px}
+.nav svg{width:22px;height:22px}
+.nav > button{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:20px;font-weight:900;display:grid;place-items:center;flex-shrink:0}
+.nav > button:disabled{opacity:.3;cursor:default}
+.dots{flex:1;display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.dots button{width:8px;height:8px;padding:0;border:0;border-radius:99px;background:rgba(255,255,255,.22);transition:width .25s,background .25s}
+.dots button.on{width:22px;background:var(--green-hi)}
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;min-height:50px;border-radius:14px;background:var(--green);color:#fff;font-weight:900;font-size:16px;text-decoration:none;box-shadow:0 6px 20px rgba(0,166,81,.3)}
+.cta.gold{background:var(--gold);color:#14110a;box-shadow:0 6px 20px rgba(245,166,35,.3)}
+
+/* الموبايل بالعرض: الشريحة تملى الشاشة */
+@media (orientation:landscape) and (max-height:560px){
+  .top,.cap,.hint,.cta{display:none}
+  .slide{padding:8px}
+  .frame{height:calc(100dvh - 86px);width:auto;max-width:100%;border-radius:10px}
+  .bottom{padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom,0px))}
+  .nav > button{width:40px;height:40px}
+}
+@media (min-width:900px){ .cap{font-size:19px} }
+@media (prefers-reduced-motion:reduce){ .track{scroll-behavior:auto} .dots button{transition:none} }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <img src="../logos/fullspeed.jpg" alt="Full Speed">
+  <div class="t"><b>تطبيق مرتبات Full Speed</b><small>دليل الاستخدام · اسحب للشريحة اللي بعدها</small></div>
+  <span class="count" id="count">1 / 10</span>
+</header>
+
+<main class="track" id="track" aria-roledescription="carousel" aria-label="شرائح دليل التطبيق"></main>
+
+<footer class="bottom">
+  <div class="nav">
+    <button id="prev" aria-label="الشريحة اللي فاتت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg></button>
+    <div class="dots" id="dots" role="tablist" aria-label="اختار شريحة"></div>
+    <button id="next" aria-label="الشريحة اللي بعدها"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 6 9 12 15 18"/></svg></button>
+  </div>
+  <a class="cta" id="cta" href="../">افتح التطبيق دلوقتي</a>
+</footer>
+
+<script>
+var SLIDES = [
+  ['مرتبك في جيبك، في أي وقت', '<b>تطبيق المرتبات الجديد لمناديب Full Speed.</b> مرتبك وكل تفاصيله على موبايلك، تشوفها في أي وقت من غير ما تسأل حد.'],
+  ['كل اللي محتاج تعرفه عن مرتبك، قدامك', 'مش هتستنى حد: <b>الصافي والمستحقات والخصومات قدامك</b> أول ما المرتب ينزل. ومحدش غيرك يقدر يشوف مرتبك.'],
+  ['إيه اللي هتلاقيه جوه؟', 'الرقم الكبير هو <b>الصافي اللي هتقبضه</b>. المستحقات بالأخضر والخصومات بالأحمر. ومناديب طلبات هيلاقوا الكانسل والتعويضات وخصم المشرف كل واحد في تبويب.'],
+  ['3 خطوات بس', 'افتح الرابط من موبايلك، <b>اختار لوجو شركتك</b>، وادخل بكود المندوب أو رقم موبايلك (بالصفر أو من غيره).'],
+  ['أول مرة تدخل', '<b>أهم نقطة:</b> أول مرة تدخل، الرقم السري اللي هتكتبه هو اللي هيتحفظ. اكتبه مرتين واحفظه كويس. لو نسيته، المشرف يمسحه وتختار واحد جديد.'],
+  ['ثبّته في دقيقة', '<b>ثبّت التطبيق على الشاشة الرئيسية:</b> هيفتح أسرع، ولو النت فاصل هيوريك آخر مرتب اتحفظ، ويحدّث لوحده أول ما النت يرجع.'],
+  ['ازاي تقرا مرتبك', '<b>الأخضر فلوس ليك، والأحمر خصومات</b>، والرمادي معلومات عن شغلك زي الأيام والشحنات. وتقدر تحمّل البيان PDF أو صورة.'],
+  ['التطبيق على مزاجك', 'من صفحة <b>«حسابي»</b> فعّل البصمة عشان محدش يفتح حسابك حتى لو مسك موبايلك، واختار الشكل واللون اللي يريحك.'],
+  ['أسئلة بتتسأل كتير', 'نسيت الرقم السري؟ <b>كلّم المشرف</b>. الكود مش متسجل؟ اتأكد من الشركة ورقمك. المرتب بيظهر عندك خلال دقايق من رفعه.'],
+  ['شغلك بيتحسب، وحقك قدام عينك', '<b>ادخل النهارده وشوف مرتبك.</b> قولنا رأيك، وكل ما تستخدمه أكتر، كل ما نطوّره ليك أكتر. 💚']
+];
+
+var track = document.getElementById('track'), dots = document.getElementById('dots');
+var cur = 0;
+SLIDES.forEach(function (s, i) {
+  var el = document.createElement('section');
+  el.className = 'slide'; el.id = 's' + (i + 1);
+  el.setAttribute('aria-roledescription', 'slide');
+  el.setAttribute('aria-label', (i + 1) + ' من ' + SLIDES.length + ': ' + s[0]);
+  el.innerHTML = '<div class="frame"><img src="slides/s' + (i + 1) + '.jpg" alt="' + s[0] + '" ' + (i > 1 ? 'loading="lazy" ' : '') + 'decoding="async"></div>' +
+    '<p class="cap">' + s[1] + '</p>' + (i === 0 ? '<span class="hint">⟵ اسحب لليسار للشريحة اللي بعدها · لف الموبايل بالعرض للعرض الكبير</span>' : '');
+  track.appendChild(el);
+  var d = document.createElement('button');
+  d.setAttribute('role', 'tab'); d.setAttribute('aria-label', 'شريحة ' + (i + 1));
+  d.onclick = function () { go(i); };
+  dots.appendChild(d);
+});
+
+function go(i, instant) {
+  i = Math.max(0, Math.min(SLIDES.length - 1, i));
+  var smooth = !instant && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.getElementById('s' + (i + 1)).scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', inline: 'center', block: 'nearest' });
+  if (instant) { setCur(i); locked = true; setTimeout(function () { locked = false; }, 400); }
+}
+function setCur(i) {
+  cur = i;
+  document.getElementById('count').textContent = (i + 1) + ' / ' + SLIDES.length;
+  [].forEach.call(dots.children, function (d, j) { d.classList.toggle('on', j === i); d.setAttribute('aria-selected', j === i); });
+  document.getElementById('prev').disabled = i === 0;
+  document.getElementById('next').disabled = i === SLIDES.length - 1;
+  var cta = document.getElementById('cta');
+  cta.classList.toggle('gold', i === SLIDES.length - 1);
+  try { history.replaceState(null, '', '#' + (i + 1)); } catch (e) {}
+}
+// الشريحة الحالية من مكان السحب (في العربي scrollLeft بيبقى بالسالب)
+var scrollT, locked = false;
+track.addEventListener('scroll', function () {
+  if (locked) return;
+  clearTimeout(scrollT);
+  scrollT = setTimeout(function () {
+    var i = Math.round(Math.abs(track.scrollLeft) / track.clientWidth);
+    if (i !== cur) setCur(Math.max(0, Math.min(SLIDES.length - 1, i)));
+  }, 60);
+}, { passive: true });
+
+document.getElementById('prev').onclick = function () { go(cur - 1); };
+document.getElementById('next').onclick = function () { go(cur + 1); };
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'ArrowLeft') go(cur + 1);   // عربي: الشمال = اللي بعده
+  if (e.key === 'ArrowRight') go(cur - 1);
+});
+
+var start = parseInt((location.hash || '').slice(1), 10);
+setCur(0);
+if (start > 1) go(start - 1, true);
+// لو الموبايل اتلف أو الخط اتحمّل والصفحة اتظبطت، نفضل على نفس الشريحة
+function hold() { var c = cur; requestAnimationFrame(function () { go(c, true); }); }
+window.addEventListener('resize', hold);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(hold);
+window.addEventListener('load', hold);
+</script>
+</body>
+</html>
