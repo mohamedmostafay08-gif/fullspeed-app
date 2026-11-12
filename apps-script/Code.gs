@@ -567,6 +567,21 @@ function getGenericCompanyData_(sheetName, riderId) {
   var colWallet = findCol(["صافي القبض الظاهر على محفظة الطيار", "صافي المحفظة", "صافي القبض", "صافي الراتب", "صافي الراتب المستحق"]);
   var colNet = findCol(["الصافي", "المبلغ المستحق", "صافي الراتب"]);
 
+  // طلبات: المرتب الأسبوعي (عمود الاسبوع فيه قيمة) من "صافي القبض الظاهر على محفظة الطيار"
+  //        المرتب الشهري (عمود الاسبوع فاضي) من "صافي المرتب"
+  var isTalabat = sheetName === "Talabat";
+  if (isTalabat) {
+    colWeek = findColExact(["الاسبوع", "الأسبوع"]);
+    var tWallet = findCol(["صافي القبض الظاهر على محفظة الطيار", "صافي القبض الظاهر على المحفظة", "صافي القبض الظاهر"]);
+    var tMonthly = findColExact(["صافي المرتب", "صافي الراتب"]);
+    var tMonthName = findColExact(["الشهر"]);
+  }
+  function cell_(r, c) {
+    if (c === -1 || c === undefined) return "";
+    var v = String(clean_(data[r][c])).trim();
+    return v === "-" ? "" : v;
+  }
+
   var weeks = [], riderName = "-", vehicle = "", branch = "";
   // عناوين الأعمدة المتكررة (زي "الراتب" مرتين) بتاخد رقم عشان تتفرق
   var titles = [], seenT = {};
@@ -584,9 +599,29 @@ function getGenericCompanyData_(sheetName, riderId) {
     if (colComp !== -1 && data[r][colComp]) branch = String(clean_(data[r][colComp])).trim();
 
     var week = colWeek !== -1 ? String(clean_(data[r][colWeek])).trim() : "";
-    var total = "0", top = week ? "الأسبوع: " + week : "صافي المستحقات", sub = "صافي المستحقات", usedCol = -1;
+    var total = "0", top = week ? "الأسبوع: " + week : "صافي المستحقات", sub = "صافي المستحقات", usedCol = -1, label = "";
+    var extraSkip = [];
 
-    if (colWallet !== -1 && String(clean_(data[r][colWallet])).trim() !== "") {
+    if (isTalabat) {
+      if (week === "-") week = "";
+      extraSkip = [tWallet, tMonthly, tMonthName];
+      if (week && cell_(r, tWallet) !== "") {
+        total = data[r][tWallet]; top = "الأسبوع: " + week; sub = "صافي القبض الظاهر على المحفظة";
+        label = "الأسبوع " + week;
+      } else if (!week && cell_(r, tMonthly) !== "") {
+        var mName = cell_(r, tMonthName);
+        total = data[r][tMonthly]; sub = "صافي المرتب";
+        top = mName ? "المرتب الشهري: " + mName : "المرتب الشهري";
+        label = mName ? "شهر " + mName : "المرتب الشهري";
+      } else {
+        // العمود المطلوب فاضي في الصف ده: ناخد التاني بدل ما نعرض صفر
+        var alt = week ? tMonthly : tWallet;
+        total = cell_(r, alt) !== "" ? data[r][alt] : 0;
+        sub = week ? "صافي المرتب" : "صافي القبض الظاهر على المحفظة";
+        top = week ? "الأسبوع: " + week : "المرتب الشهري";
+        label = week ? "الأسبوع " + week : "المرتب الشهري";
+      }
+    } else if (colWallet !== -1 && String(clean_(data[r][colWallet])).trim() !== "") {
       total = data[r][colWallet]; usedCol = colWallet;
       // جملة المحفظة لطلبات بس، الباقي بياخد اسم العمود نفسه
       sub = sheetName === "Talabat" ? "صافي القبض الظاهر على المحفظة" : String(headers[colWallet]).trim();
@@ -599,6 +634,7 @@ function getGenericCompanyData_(sheetName, riderId) {
     var details = [], skip = idCols.concat([colName, colVehicle, colWeek, colComp]);
     headers.forEach(function (h, i) { if (/^(vendor|المورد|الشركه الموردة)$/i.test(norm_(h))) skip.push(i); });
     if (usedCol !== -1) skip.push(usedCol);
+    extraSkip.forEach(function (c) { if (c !== -1 && c !== undefined) skip.push(c); });
     for (var c = 0; c < headers.length; c++) {
       var title = titles[c];
       if (skip.indexOf(c) !== -1 || !title) continue;
@@ -610,7 +646,7 @@ function getGenericCompanyData_(sheetName, riderId) {
 
     weeks.push({
       week_id: "week_" + r,
-      week_label: week ? "الأسبوع " + week : (weeks.length > 0 ? "دفعة " + (weeks.length + 1) : "الراتب الحالي"),
+      week_label: label || (week ? "الأسبوع " + week : (weeks.length > 0 ? "دفعة " + (weeks.length + 1) : "الراتب الحالي")),
       top_title: top,
       sub_title: sub,
       final_total: clean_(total) === "" ? 0 : clean_(total),
