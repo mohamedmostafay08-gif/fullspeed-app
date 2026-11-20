@@ -12,7 +12,7 @@ var SESSION_DAYS = 30;        // مدة "افتكرني على الموبايل 
 var MAX_SESSIONS = 3;         // أقصى عدد موبايلات مفتوح عليها الحساب في نفس الوقت
 var MAX_FAILS = 5;            // عدد المحاولات الغلط قبل القفل المؤقت
 var FAIL_LOCK_SECONDS = 600;  // مدة القفل (10 دقايق)
-var CACHE_SECONDS = 300;      // بيانات الشيتات بتتخزن مؤقتًا 5 دقايق
+var CACHE_SECONDS = 120;      // بيانات الشيتات بتتخزن مؤقتًا دقيقتين بالكتير
 var CACHE_CHUNK = 40000;      // حجم الجزء الواحد في الكاش (الحد 100KB)
 var LOG_SHEET = "Logs";
 var LOG_MAX_ROWS = 20000;     // لما اللوج يعدّي الرقم ده بنمسح أقدم 5000 سطر
@@ -50,6 +50,8 @@ function doPost(e) {
       case 'checkSalary': out = checkSalary(a[0], a[1], a[2], a[3] === true); break;
       case 'loginWithToken': out = loginWithToken(a[0], a[1], a[2]); break;
       case 'logout': out = logout(a[0], a[1]); break;
+      // برنامج الأدمن يناديها بعد ما يرفع بيانات جديدة عشان تظهر للمناديب فورًا
+      case 'refresh': out = refreshFromAdmin_(); break;
       default: out = fail_("عملية مش معروفة.");
     }
   } catch (err) {
@@ -199,6 +201,26 @@ function readSheetCached_(name) {
 function clearDataCache() {
   PropertiesService.getScriptProperties().setProperty('CACHE_VER', Utilities.getUuid().slice(0, 8));
   return { success: true };
+}
+
+// مسح الكاش من برنامج الأدمن (مرة كل 10 ثواني بالكتير عشان محدش يزحم السيرفر)
+function refreshFromAdmin_() {
+  var c = CacheService.getScriptCache();
+  if (c.get('refresh_lock')) return { success: true, skipped: true };
+  c.put('refresh_lock', '1', 10);
+  clearDataCache();
+  return { success: true };
+}
+
+// منيو في الشيت: Full Speed ← تحديث بيانات التطبيق دلوقتي
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Full Speed')
+    .addItem('🔄 تحديث بيانات التطبيق دلوقتي', 'refreshDataNow')
+    .addToUi();
+}
+function refreshDataNow() {
+  clearDataCache();
+  SpreadsheetApp.getActiveSpreadsheet().toast('البيانات الجديدة هتظهر للمناديب من دلوقتي.', 'Full Speed', 5);
 }
 
 // أي تعديل يدوي في الشيت بيمسح الكاش أوتوماتيك
@@ -619,8 +641,10 @@ function getGenericCompanyData_(sheetName, riderId) {
       } else {
         // العمود المطلوب فاضي في الصف ده: ناخد التاني بدل ما نعرض صفر
         var alt = week ? tMonthly : tWallet;
-        total = cell_(r, alt) !== "" ? data[r][alt] : 0;
-        sub = week ? "صافي المرتب" : "صافي القبض الظاهر على المحفظة";
+        var hasAlt = cell_(r, alt) !== "";
+        total = hasAlt ? data[r][alt] : 0;
+        // لو الاتنين فاضيين (صف أصفار) نسيب اسم العمود الطبيعي للحالة دي
+        sub = (week ? hasAlt : !hasAlt) ? "صافي المرتب" : "صافي القبض الظاهر على المحفظة";
         top = week ? String(headers[colWeek]).trim() + ": " + week : "المرتب الشهري";
         label = week ? week : "المرتب الشهري";
       }
