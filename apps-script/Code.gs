@@ -22,7 +22,7 @@ var COMPANY_SHEETS = [
   "Talabat", "Amazon now", "Noon Minuts", "Noon Minuts_Pickers", "Noon Minuts_Logistics", "Noon Core",
   "Bosta", "Mylerz", "Breadfast", "InstaShop", "Jumia", "Flextock", "Halan", "Khazenly",
   "Lychee", "Talabya", "PDC Express", "Hassan Allam", "Carrefour", "Zadna", "MaxAB",
-  "Tagaddod", "Rabbit", "J&T Express", "JD Express", "Nodust", "Yalla Fel Sekka", "Rumi's"
+  "Tagaddod", "Rabbit", "J&T Express", "JD Express", "Nodust", "Yalla Fel Sekka", "Rumi's", "NACITA"
 ];
 
 // =========================================================================
@@ -64,9 +64,9 @@ function doPost(e) {
 // بيشغّل setupDatabase مرة واحدة بس بدل كل فتحة (أسرع بكتير)
 function ensureDatabase_() {
   var props = PropertiesService.getScriptProperties();
-  if (props.getProperty('DB_READY_V3') === '1') return;
+  if (props.getProperty('DB_READY_V4') === '1') return;
   setupDatabase();
-  props.setProperty('DB_READY_V3', '1');
+  props.setProperty('DB_READY_V4', '1');
 }
 
 // لو ضفت شركة جديدة في COMPANY_SHEETS شغّل الدالة دي يدوي من المحرر
